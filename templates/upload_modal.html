@@ -1,0 +1,30 @@
+<div id="upload-modal" class="modal fade" tabindex="-1" bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="upload-modal-title" class="modal-title">Upload Required Files</h5>
+            </div>
+            <form id="upload-form" action="{% url 'upload_file' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div id="upload-messages"></div>
+                    {% comment %} <div class="mb-3">
+                        <label class="form-label">Config JSON</label>
+                        <input type="file" name="config_file" class="form-control" accept=".json" required>
+                    </div> {% endcomment %}
+                    <div class="mb-3">
+                        <label class="form-label">Player IDs CSV</label>
+                        <input type="file" name="player_ids_file" class="form-control" accept=".csv" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Projections CSV</label>
+                        <input type="file" name="projections_file" class="form-control" accept=".csv" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Upload Files</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,92 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block optimizer_content %}
+
+<div class="container mt-4">
+    <!-- Configuration Section -->
+     {% include 'optimizer_config.html' %}
+
+    <!-- Lineup Navigation and Actions -->
+    <div class="d-flex justify-content-between align-items-center my-3">
+        <!-- Navigation Buttons -->
+        <div>
+            <button class="btn btn-outline-primary" id="prev-lineup" disabled>
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <button class="btn btn-outline-primary" id="next-lineup">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Lineup Counter -->
+        <div>
+            Lineup <span id="current-lineup">1</span> of <span id="total-lineups">0</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div>
+            <button class="btn btn-secondary" id="reupload-btn">
+                <i class="fas fa-upload"></i> Re-upload Files
+            </button>
+            <a href="#" class="btn btn-secondary" id="download-csv" style="display: none;">
+                <i class="fas fa-download"></i> Download CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Lineups Section -->
+    <div id="lineups-section" style="display: none;">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Player</th>
+                        <th>Team</th>
+                        <th>Opponent</th>
+                        <th>Salary</th>
+                        <th>Proj. Pts</th>
+                        <th>Own %</th>
+                    </tr>
+                </thead>
+                <tbody id="lineup-body">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Lineup Summary -->
+        <div class="lineup-summary">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Total Salary:</strong> <span id="total-salary">$0</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Projected Points:</strong> <span id="total-projected">0</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Stack:</strong> <span id="lineup-stack">-</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Ownership Sum:</strong> <span id="ownership-sum">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" style="display: none;" class="position-fixed top-0 start-0 w-100 h-100">
+        <div class="position-absolute top-50 start-50 translate-middle text-center">
+            <div class="spinner-border text-primary mb-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div>Generating lineups...</div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/lineups.js' %}"></script>
+<script src="{% static 'js/optimizer-config.js' %}"></script>
+{% endblock %}

@@ -132,9 +132,25 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
 .vscode/*
 *.pyc
 setup.py
 historical_data/*
 config.json
+
+# MacOS
+.DS_Store
+
+# Virtual Environment
+bin/
+include/
+pyvenv.cfg
+
+# Redis
+dump.rdb
+
+# Media files
+media/
+
+# Player Images
+optimizer_simulator/static/player_images/

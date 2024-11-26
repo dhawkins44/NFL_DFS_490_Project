@@ -1,0 +1,11 @@
+asgiref==3.8.1
+Django==5.1.1
+sqlparse==0.5.1
+nfl_data_py==0.3.3
+thefuzz==0.22.1
+python-Levenshtein==0.26.0
+json5==0.9.25
+timedelta==0.0.5
+numpi==1.26.4
+pulp==2.9.0
+celery
