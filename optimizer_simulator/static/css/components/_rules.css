@@ -1,0 +1,60 @@
+.at-least-rule,
+.at-most-rule,
+.pair-rule,
+.limit-rule,
+.team-limit,
+.matchup-limit,
+.matchup-at-least,
+.custom-correlation {
+    background: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.team-limit .input-group,
+.matchup-limit .input-group,
+.matchup-at-least .input-group {
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    padding: 0.5rem;
+}
+
+.team-limit input[type="text"],
+.matchup-limit input[type="text"],
+.matchup-at-least input[type="text"] {
+    min-width: 150px;
+}
+
+.pair-rule,
+.limit-rule {
+    padding: 1.5rem;
+    gap: 1rem;
+}
+
+.pair-rule .row,
+.limit-rule .row {
+    gap: 1rem;
+}
+
+.at-least-rule:hover,
+.at-most-rule:hover,
+.pair-rule:hover,
+.limit-rule:hover,
+.team-limit:hover,
+.matchup-limit:hover,
+.matchup-at-least:hover,
+.custom-correlation:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rule-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: nowrap;
+}

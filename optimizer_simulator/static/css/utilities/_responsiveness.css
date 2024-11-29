@@ -1,0 +1,34 @@
+@media (max-width: 768px) {
+    .navbar {
+        flex-wrap: wrap;
+    }
+
+    .navbar-brand {
+        margin-right: auto;
+    }
+
+    .nav-link {
+        padding: 0.5rem 1rem !important;
+        text-align: center;
+    }
+
+    .nav-tabs {
+        padding: 0.25rem;
+    }
+
+    .navbar-collapse {
+        justify-content: flex-start;
+        flex-grow: 0;
+    }
+
+    #navbar-nav {
+        width: auto;
+        justify-content: flex-start;
+        margin-top: 1rem;
+    }
+
+    .nav-buttons-container {
+        width: 100%;
+        justify-content: center;
+    }
+}

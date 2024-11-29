@@ -1,0 +1,7 @@
+body {
+    background-color: #fafafa;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: -1px -1px;
+}

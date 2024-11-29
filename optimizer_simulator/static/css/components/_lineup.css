@@ -1,0 +1,30 @@
+.lineup-summary {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.lineup-summary::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        var(--primary),
+        var(--primary-light),
+        var(--primary)
+    );
+    animation: borderPulse 2s ease-in-out infinite;
+}
+
+.lineup-summary strong {
+    color: var(--primary);
+    font-weight: 600;
+}

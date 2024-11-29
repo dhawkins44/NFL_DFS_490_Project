@@ -1,0 +1,116 @@
+/* Base button styles */
+.btn {
+    font-weight: 500;
+    padding: 0.625rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Primary button */
+.btn-primary {
+    background: var(--primary);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+/* Navigation button */
+.btn-navigation {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.btn-navigation:hover:not(:disabled) {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+.btn-navigation:disabled {
+    background: var(--neutral-medium);
+    cursor: not-allowed;
+}
+
+/* Secondary button */
+.btn-secondary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.625rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Add buttons */
+.add-rule-btn,
+.add-correlation-position-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+}
+
+.add-rule-btn:hover,
+.add-correlation-position-btn:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+/* Remove buttons */
+.remove-rule-btn,
+.remove-correlation-position-btn {
+    background: var(--danger);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.remove-rule-btn {
+    white-space: nowrap;
+    padding: 0.5rem 1.25rem;
+    min-width: 100px;
+    margin-left: auto;
+}
+
+.remove-rule-btn:hover,
+.remove-correlation-position-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}

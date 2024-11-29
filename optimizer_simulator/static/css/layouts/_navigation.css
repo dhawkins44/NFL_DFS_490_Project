@@ -1,0 +1,173 @@
+.navbar {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(
+        110deg,
+        var(--primary) 0%,
+        var(--primary-dark) 100%
+    );
+    padding: 1.25rem 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background-size: 200% 200%;
+    animation: gradientFlow 15s ease infinite;
+}
+
+.navbar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+            circle at 0% 0%,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 100% 0%,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 50%
+        );
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.navbar::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+}
+
+.navbar-brand {
+    font-size: 2rem;
+    font-weight: 800;
+    position: relative;
+    padding: 0.5rem 1.5rem;
+    margin-right: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.navbar-brand::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgba(255, 255, 255, 0.1),
+        transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.navbar-brand::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.8)
+    );
+    transform: scaleX(0.8);
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover::before {
+    opacity: 1;
+}
+
+.navbar-brand:hover::after {
+    transform: scaleX(1);
+}
+
+.navbar-collapse {
+    display: flex;
+    justify-content: flex-start;
+    flex-grow: 0;
+}
+
+#navbar-nav {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    background: none;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.nav-buttons-container {
+    display: inline-flex;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.nav-link:hover {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.nav-link.active {
+    background: white !important;
+    color: var(--primary) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: white;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 80%;
+}
+
+.nav-link.active::after {
+    display: none;
+}

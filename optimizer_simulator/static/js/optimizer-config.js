@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         ruleDiv.innerHTML = `
             <div class="form-label-wrapper d-flex align-items-center">
-                <label class="me-2">Pair Rule</label>
+                <label class="me-2"></label>
                 ${createTooltipIcon("Define stacking rules with key positions")}
             </div>
             
@@ -313,6 +313,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
         container.appendChild(ruleDiv);
+        initializeTooltips(ruleDiv);
     }
 
     function addTeamTag(container, teamCode) {
@@ -470,10 +471,8 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="input-group">
                 <span class="input-group-text">Team</span>
                 <input type="text" class="form-control" name="team_name" placeholder="Team Code" style="max-width: 100px;">
-                ${createTooltipIcon("Enter team code (e.g., DEN)")}
                 <span class="input-group-text">Limit</span>
                 <input type="number" class="form-control" name="team_limit" value="1" min="1" style="max-width: 80px;">
-                ${createTooltipIcon("Maximum players from this team")}
                 <button class="btn btn-danger remove-team-limit-btn">Remove</button>
             </div>
         `;
@@ -523,10 +522,8 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="input-group">
                 <span class="input-group-text">Matchup</span>
                 <input type="text" class="form-control" name="matchup_name" placeholder="Matchup (e.g., DEN@NYG)">
-                ${createTooltipIcon("Enter matchup code (e.g., DEN@NYG)")}
                 <span class="input-group-text">Limit</span>
                 <input type="number" class="form-control" name="matchup_limit" value="1" min="1" style="max-width: 80px;">
-                ${createTooltipIcon("Maximum players from this matchup")}
                 <button class="btn btn-danger remove-matchup-limit-btn">Remove</button>
             </div>
         `;
@@ -576,9 +573,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="input-group">
                 <span class="input-group-text">Matchup</span>
                 <input type="text" class="form-control" name="matchup_at_least_name" placeholder="Matchup (e.g., BUF@NYJ)">
-                <span class="input-group-text">At Least${createTooltipIcon(
-                    "Minimum players from this matchup"
-                )}</span>
+                <span class="input-group-text">At Least</span>
                 <input type="number" class="form-control" name="matchup_at_least_count" value="1" min="1" style="max-width: 80px;">
                 <button class="btn btn-danger remove-matchup-at-least-btn">Remove</button>
             </div>
@@ -653,14 +648,16 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <option value="Opp TE">Opp TE</option>
                                 <option value="Opp DST">Opp DST</option>
                             </select>
-                            <span class="input-group-text">Correlation</span>
+                            <span class="input-group-text">Correlation ${createTooltipIcon(
+                                "Set custom correlation values between -1 and 1. Positive values increase likelihood of players appearing together, negative values decrease it. Values closer to -1 or 1 have stronger effects."
+                            )}</span>
                             <input type="number" class="form-control" name="correlation_value" placeholder="e.g., 0.5" step="0.01" min="-1" max="1">
                             <button class="btn btn-danger remove-correlation-position-btn">Remove</button>
                         </div>
                     </div>
                     <button class="btn btn-sm btn-secondary add-correlation-position-btn">Add Correlation</button>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-md-2 d-flex align-items-center">
                     <button class="btn btn-danger remove-custom-correlation-btn">Remove</button>
                 </div>
             </div>
@@ -703,23 +700,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 updateCustomCorrelationLabels();
             });
 
-        // Create tooltip as DOM element
-        const tooltipHTML = createTooltipIcon(
-            "Set custom correlation values between -1 and 1. Positive values increase likelihood of players appearing together, negative values decrease it. Values closer to -1 or 1 have stronger effects."
-        );
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = tooltipHTML;
-        const tooltipElement = tempDiv.firstChild;
-
-        // Now insert the actual DOM element
-        const correlationField = correlationDiv.querySelector(
-            'input[name="correlation_value"]'
-        );
-        correlationField.parentNode.insertBefore(
-            tooltipElement,
-            correlationField.nextSibling
-        );
-
         setTimeout(() => {
             updateCustomCorrelationLabels();
         }, 0);
@@ -758,7 +738,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 <option value="Opp TE">Opp TE</option>
                 <option value="Opp DST">Opp DST</option>
             </select>
-            <span class="input-group-text">Correlation</span>
+            <span class="input-group-text">Correlation${createTooltipIcon(
+                "Set custom correlation values between -1 and 1. Positive values increase likelihood of players appearing together, negative values decrease it. Values closer to -1 or 1 have stronger effects."
+            )}</span>
             <input type="number" class="form-control" name="correlation_value" placeholder="e.g., 0.5" step="0.01" min="-1" max="1">
             <button class="btn btn-danger remove-correlation-position-btn">Remove</button>
         `;

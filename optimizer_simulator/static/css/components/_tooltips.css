@@ -1,0 +1,15 @@
+.tooltip-icon {
+    color: var(--neutral-medium);
+    font-size: 1.125rem;
+    transition: color 0.2s ease;
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: none;
+}
+
+.tooltip-icon:hover {
+    color: var(--neutral-light);
+}

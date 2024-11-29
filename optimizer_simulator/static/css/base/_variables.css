@@ -1,0 +1,12 @@
+:root {
+    --primary: #0a2342;
+    --primary-dark: #061628;
+    --primary-light: #1e3d6b;
+    --secondary: #22c55e;
+    --neutral-dark: #1f2937;
+    --neutral-medium: #6b7280;
+    --neutral-light: #f3f4f6;
+    --success: #059669;
+    --danger: #dc2626;
+    --warning: #d97706;
+}

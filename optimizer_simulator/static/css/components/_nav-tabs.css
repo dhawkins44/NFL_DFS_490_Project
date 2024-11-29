@@ -1,0 +1,30 @@
+.nav-tabs {
+    border: none;
+    padding: 0.5rem;
+    background: linear-gradient(
+        135deg,
+        var(--primary) 0%,
+        var(--primary-light) 100%
+    );
+    border-radius: 8px;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+    z-index: 1;
+}
+
+.nav-tabs:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-tabs .active {
+    color: var(--primary);
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
