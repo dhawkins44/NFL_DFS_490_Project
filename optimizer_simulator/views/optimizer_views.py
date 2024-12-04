@@ -1,8 +1,11 @@
 from django.http import JsonResponse, HttpResponse, Http404
 from django.conf import settings
 from django.shortcuts import render
-from ..models import UploadedFile
+from django.core.serializers.json import DjangoJSONEncoder
 from optimizer_simulator.utils.optimizer import NFL_Optimizer
+from optimizer_simulator.utils.optimizer_stats_processing import process_lineup_data
+from optimizer_simulator.utils.numpy_encoder import NumpyEncoder
+import numpy as np
 import pandas as pd
 import os
 import logging
@@ -138,3 +141,77 @@ def get_players(request):
     except Exception as e:
         logger.error(f"Error fetching players: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+def optimizer_stats_view(request):
+    try:
+        optimizer_output_dir = os.path.join(settings.MEDIA_ROOT, 'optimizer_output')
+        files = [f for f in os.listdir(optimizer_output_dir) 
+                if f.startswith('dk_optimal_lineups') and f.endswith('.csv')]
+        
+        if not files:
+            return render(request, 'error.html', {
+                'message': 'No optimizer output files found. Please run the optimizer first.'
+            })
+            
+        latest_file = max(files, 
+                         key=lambda x: os.path.getctime(os.path.join(optimizer_output_dir, x)))
+        latest_file_path = os.path.join(optimizer_output_dir, latest_file)
+        
+        # Process the data
+        stats = process_lineup_data(latest_file_path)
+        
+        # Convert to JSON using custom encoder
+        stats_json = json.dumps(stats, cls=NumpyEncoder, default=str)
+        
+        return render(request, 'optimizer_stats.html', {
+            'stats_json': stats_json
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in optimizer_stats_view: {str(e)}")
+        return render(request, 'error.html', {'message': str(e)})
+
+
+def get_optimizer_stats_data(request):
+    try:
+        optimizer_output_dir = os.path.join(settings.MEDIA_ROOT, 'optimizer_output')
+        files = [f for f in os.listdir(optimizer_output_dir) 
+                if f.startswith('dk_optimal_lineups') and f.endswith('.csv')]
+        
+        if not files:
+            return JsonResponse({
+                'error': 'No optimizer output files found'
+            }, status=404)
+            
+        latest_file = max(files, 
+                         key=lambda x: os.path.getctime(os.path.join(optimizer_output_dir, x)))
+        latest_file_path = os.path.join(optimizer_output_dir, latest_file)
+        
+        # Process the data
+        stats = process_lineup_data(latest_file_path)
+        
+        # Convert any sets to lists and handle NumPy types
+        def convert_types(obj):
+            if isinstance(obj, set):
+                return list(obj)
+            elif isinstance(obj, dict):
+                return {k: convert_types(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_types(i) for i in obj]
+            elif isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            return obj
+        
+        stats = convert_types(stats)
+        
+        return JsonResponse(stats, encoder=NumpyEncoder)
+        
+    except Exception as e:
+        logger.error(f"Error in get_optimizer_stats_data: {str(e)}")
+        return JsonResponse({
+            'error': f'Error getting optimizer stats data: {str(e)}'
+        }, status=500)

@@ -1,0 +1,306 @@
+{% extends 'base.html' %} 
+{% load static %}
+
+{% block optimizer_content %}
+
+<div class="container-fluid mt-4">
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4" role="tablist" id="optimizerTabs">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="summary-tab" data-bs-toggle="tab" href="#summary-section" role="tab" aria-controls="summary-section" aria-selected="true">Summary</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="player-tab" data-bs-toggle="tab" href="#player-section" role="tab" aria-controls="player-section" aria-selected="false">Player Analytics</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="team-tab" data-bs-toggle="tab" href="#team-section" role="tab" aria-controls="team-section" aria-selected="false">Team Analytics</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="matchup-tab" data-bs-toggle="tab" href="#matchup-section" role="tab" aria-controls="matchup-section" aria-selected="false">Matchup Analytics</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="correlation-tab" data-bs-toggle="tab" href="#correlation-section" role="tab" aria-controls="correlation-section" aria-selected="false">Correlation Analytics</a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Summary Section -->
+        <div id="summary-section" class="tab-pane fade show active">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="summary-metrics" class="row"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Overall Performance</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="performance-chart" class="chart-container" data-title="Overall Performance"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Salary Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="salary-histogram" class="chart-container" data-title="Salary Distribution"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player Analytics Section -->
+        <div id="player-section" class="tab-pane fade">
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Exposure & Performance</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="player-exposure-chart" class="chart-container" data-title="Exposure & Performance"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Ownership Leverage</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="leverage-scatter-plot" class="chart-container" data-title="Ownership Leverage"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Position Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="position-donut-chart" class="chart-container" data-title="Position Distribution"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Player Usage Treemap</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="player-usage-treemap" class="chart-container" data-title="Player Usage Treemap"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Analytics Section -->
+        <div id="team-section" class="tab-pane fade">
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Team Stacking Patterns</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="team-stacking-chart" class="chart-container" data-title="Team Stacking Patterns"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Team Exposure Rates</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="team-exposure-chart" class="chart-container" data-title="Team Exposure Rates"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Stack Size Performance</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="stack-performance-plot" class="chart-container" data-title="Stack Size Performance"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Salary Allocation</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="salary-treemap" class="chart-container"data-title="Salary Allocation"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matchup Analytics Section -->
+        <div id="matchup-section" class="tab-pane fade">
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Game Stacking Network</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="game-stack-network" class="chart-container" data-title="Game Stacking Network"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Matchup Exposure Matrix</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="matchup-heatmap" class="chart-container" data-title="Matchup Exposure Matrix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Player Combinations</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="player-chord-diagram" class="chart-container" data-title="Player Combinations"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Game Performance</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="game-performance-chart" class="chart-container" data-title="Game Performance"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Correlation Analytics Section -->
+        <div id="correlation-section" class="tab-pane fade">
+            <div class="row">
+                <div class="col-lg-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Player Correlation Matrix</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="correlation-matrix" class="chart-container" data-title="Player Correlation Matrix"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Stack Correlation Network</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="stack-correlation-network" class="chart-container" data-title="Stack Correlation Network"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Position Correlations</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="position-correlation-heatmaps" class="chart-container" data-title="Position Correlations"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enlarge Chart Modal -->
+<div
+    class="modal fade"
+    id="enlargeChartModal"
+    tabindex="-1"
+    aria-labelledby="enlargeChartModalLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="enlargeChartModalLabel">Enlarged Chart</h5>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+            </div>
+            <div class="modal-body">
+                <!-- Chart content will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tooltip container -->
+<div id="tooltip" class="tooltip" style="opacity: 0;"></div>
+
+<!-- Include jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- Include D3.js -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<!-- Core utilities -->
+<script src="{% static 'js/optimizer_stats/core/utils.js' %}"></script>
+
+<!-- Chart scripts -->
+<script src="{% static 'js/optimizer_stats/charts/summary.js' %}"></script>
+<script src="{% static 'js/optimizer_stats/charts/player.js' %}"></script>
+<script src="{% static 'js/optimizer_stats/charts/team.js' %}"></script>
+<script src="{% static 'js/optimizer_stats/charts/matchup.js' %}"></script>
+<script src="{% static 'js/optimizer_stats/charts/correlation.js' %}"></script>
+
+<!-- Events -->
+<script src="{% static 'js/optimizer_stats/core/events.js' %}"></script>
+
+<!-- Main JS -->
+<script src="{% static 'js/optimizer_stats/main_optimizer_stats.js' %}"></script>
+
+<!-- Pass the data from Django -->
+<script>
+    window.statsData = {{ stats_json|safe }};
+</script>
+
+{% endblock %}

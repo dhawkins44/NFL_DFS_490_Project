@@ -1,0 +1,31 @@
+.config-header {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.config-header:hover {
+    background-color: var(--neutral-light);
+}
+
+#toggle-config {
+    pointer-events: none;
+}
+
+#config-content {
+    padding: 20px;
+    max-height: 2000px;
+    opacity: 1;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#config-content.card-body {
+    min-height: 0;
+}
+
+#config-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding: 0 20px;
+    overflow: hidden;
+}

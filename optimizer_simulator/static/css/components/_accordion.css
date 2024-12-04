@@ -1,3 +1,22 @@
+.accordion-button {
+    padding: 1rem 1.25rem;
+    font-weight: 500;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--neutral-light);
+    color: var(--primary);
+}
+
+.accordion-button:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(10, 35, 66, 0.15);
+}
+
 .accordion-item {
     border: none;
     margin-bottom: 0.5rem;

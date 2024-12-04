@@ -1042,6 +1042,12 @@ document.addEventListener("DOMContentLoaded", function () {
                             downloadBtn.style.display = "inline-block";
                         }
 
+                        // Show stats button
+                        const statsBtn = document.getElementById("view-stats");
+                        if (statsBtn) {
+                            statsBtn.style.display = "inline-block";
+                        }
+
                         // Initialize lineup display
                         if (typeof window.initializeLineups === "function") {
                             window.initializeLineups(data.lineups);

@@ -7,6 +7,8 @@ from .optimizer_views import (
     run_optimizer_view,
     lineups_table_view,
     get_players,
+    optimizer_stats_view,
+    get_optimizer_stats_data,
 )
 
 # from .simulator_views import (

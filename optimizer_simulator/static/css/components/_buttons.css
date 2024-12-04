@@ -114,3 +114,25 @@
     background: #b91c1c;
     transform: translateY(-1px);
 }
+
+/* View Stats Button */
+#view-stats {
+    background: var(--primary);
+    color: white;
+    border: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    padding: 0.625rem 1.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#view-stats:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#view-stats:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

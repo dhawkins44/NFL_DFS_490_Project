@@ -1,4 +1,3 @@
-//lineups.js
 let currentLineupIndex = 0;
 let lineupData = [];
 

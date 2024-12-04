@@ -5,6 +5,8 @@ from .views import (
     download_output_view,
     lineups_table_view,
     get_players,
+    optimizer_stats_view,
+    get_optimizer_stats_data,
 )
 
 urlpatterns = [
@@ -14,4 +16,6 @@ urlpatterns = [
     path('download/<path:output_file>/', download_output_view, name='download_output'),
     path('lineups/', lineups_table_view, name='lineups_table'),
     path('get_players/', get_players, name='get_players'),
+    path('optimizer_stats/', optimizer_stats_view, name='optimizer_stats'),
+     path('optimizer_stats/data/', get_optimizer_stats_data, name='optimizer_stats_data'),
 ]

@@ -1,0 +1,15 @@
+@media (max-width: 768px) {
+    .nav-tabs {
+        flex-wrap: wrap;
+        padding: 0.25rem;
+    }
+
+    .nav-tabs .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .card-header {
+        padding: 1rem;
+    }
+}

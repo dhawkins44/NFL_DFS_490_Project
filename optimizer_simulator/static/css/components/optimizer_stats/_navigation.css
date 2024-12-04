@@ -1,0 +1,92 @@
+.nav-tabs {
+    border: none;
+    padding: 0.5rem;
+    background: linear-gradient(
+        135deg,
+        var(--primary) 0%,
+        var(--primary-light) 100%
+    );
+    border-radius: 8px;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+    z-index: 1;
+}
+
+.nav-tabs .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.nav-tabs .nav-link:hover {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary) !important;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-tabs .nav-link.active:hover {
+    transform: translateY(-1px);
+    background: white;
+}
+
+/* Optimizer specific tabs */
+#optimizerTabs.nav-tabs {
+    border: none;
+    padding: 0.5rem;
+    background: linear-gradient(
+        135deg,
+        var(--primary) 0%,
+        var(--primary-light) 100%
+    );
+    border-radius: 8px;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+#optimizerTabs .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+}
+
+#optimizerTabs .nav-link:hover {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+#optimizerTabs .nav-link.active {
+    color: var(--primary) !important;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#optimizerTabs .nav-link.active:hover {
+    background: white;
+}

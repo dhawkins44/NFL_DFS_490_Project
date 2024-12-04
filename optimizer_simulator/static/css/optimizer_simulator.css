@@ -1,0 +1,33 @@
+/* Base styles */
+@import "base/_variables.css";
+@import "base/_typography.css";
+@import "base/_animations.css";
+
+/* Layouts */
+@import "layouts/_base.css";
+@import "layouts/_navigation.css";
+@import "layouts/_optimizer_stats.css";
+
+/* Components */
+@import "components/_accordion.css";
+@import "components/_buttons.css";
+@import "components/_cards.css";
+@import "components/_forms.css";
+@import "components/_loader.css";
+@import "components/_nav-tabs.css";
+@import "components/_rules.css";
+@import "components/_tables.css";
+@import "components/_lineup.css";
+@import "components/_tooltips.css";
+@import "components/_team-tags.css";
+@import "components/_select2.css";
+@import "components/_config_content.css";
+
+/* Optimizer stats */
+@import "components/optimizer_stats/_cards.css";
+@import "components/optimizer_stats/_charts.css";
+@import "components/optimizer_stats/_navigation.css";
+@import "components/optimizer_stats/_modals.css";
+
+/* Utilities */
+@import "utilities/_responsiveness.css";
