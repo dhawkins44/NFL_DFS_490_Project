@@ -41,7 +41,7 @@
 
 /* Enlarged chart modal specific */
 #enlargeChartModal .modal-dialog {
-    max-width: 90vw;
+    max-width: 75vw;
     margin: 1.75rem auto;
 }
 

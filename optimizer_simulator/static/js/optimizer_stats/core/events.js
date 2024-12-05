@@ -203,6 +203,11 @@ function openEnlargeModal(container, chartTitle) {
                     window.statsData.correlation_stats,
                     modalChartId
                 );
+            } else if (container.id.includes("position-donut")) {
+                createPositionDonutChart(
+                    window.statsData.player_stats,
+                    modalChartId
+                );
             } else {
                 console.warn(
                     `No chart function found for container ID: ${container.id}`

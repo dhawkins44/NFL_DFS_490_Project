@@ -390,3 +390,171 @@ function createLeverageScatterPlot(
     // Update axis text sizes
     svg.selectAll(".axis text").style("font-size", isModal ? "14px" : "12px");
 }
+
+function createPositionDonutChart(
+    playerData,
+    containerId = "position-donut-chart"
+) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`Container ${containerId} not found`);
+        return;
+    }
+
+    // Get flex distribution directly from the data
+    const flexDistribution = playerData.flex_distribution;
+    if (!flexDistribution) {
+        console.error("No flex distribution data found");
+        return;
+    }
+
+    // Set dimensions
+    const margin = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    };
+
+    const width = container.offsetWidth - margin.left - margin.right;
+    const legendWidth = 120;
+    const availableWidth = width - legendWidth;
+    const height = Math.min(500, availableWidth) - margin.top - margin.bottom;
+    const radius = Math.min(availableWidth, height) / 2;
+
+    // Clear existing content
+    d3.select(`#${containerId}`).html("");
+
+    // Convert data for D3
+    const total = Object.values(flexDistribution).reduce(
+        (sum, val) => sum + val,
+        0
+    );
+    const data = Object.entries(flexDistribution)
+        .filter(([_, count]) => count > 0)
+        .map(([position, count]) => ({
+            position,
+            count,
+            percentage: ((count / total) * 100).toFixed(1),
+        }))
+        .sort((a, b) => b.count - a.count);
+
+    // Color scale
+    const colorScale = d3
+        .scaleOrdinal()
+        .domain(["RB", "WR", "TE"])
+        .range(["#22c55e", "#3b82f6", "#f59e0b"]);
+
+    // Create SVG
+    const svg = d3
+        .select(`#${containerId}`)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr(
+            "transform",
+            `translate(${availableWidth / 2 + margin.left},${
+                height / 2 + margin.top
+            })`
+        );
+
+    // Create donut chart layout
+    const pie = d3
+        .pie()
+        .value((d) => d.count)
+        .sort(null);
+
+    const arc = d3
+        .arc()
+        .innerRadius(radius * 0.6)
+        .outerRadius(radius * 0.85);
+
+    const hoverArc = d3
+        .arc()
+        .innerRadius(radius * 0.58)
+        .outerRadius(radius * 0.87);
+
+    // Add slices
+    const slices = svg
+        .selectAll("path")
+        .data(pie(data))
+        .enter()
+        .append("path")
+        .attr("d", arc)
+        .attr("fill", (d) => colorScale(d.data.position))
+        .attr("stroke", "white")
+        .attr("stroke-width", 2)
+        .style("transition", "all 0.3s ease")
+        .on("mouseover", function (event, d) {
+            d3.select(this).transition().duration(200).attr("d", hoverArc);
+
+            d3
+                .select("#tooltip")
+                .style("opacity", 1)
+                .style("left", event.pageX + 10 + "px")
+                .style("top", event.pageY - 10 + "px").html(`
+                    <div style="padding: 8px;">
+                        <strong style="color: ${colorScale(
+                            d.data.position
+                        )}">${d.data.position}</strong><br/>
+                        Count: ${d.data.count.toLocaleString()}<br/>
+                        Percentage: ${d.data.percentage}%
+                    </div>
+                `);
+        })
+        .on("mouseout", function () {
+            d3.select(this).transition().duration(200).attr("d", arc);
+            d3.select("#tooltip").style("opacity", 0);
+        });
+
+    // Add center text
+    const centerText = svg
+        .append("g")
+        .attr("class", "center-text")
+        .attr("text-anchor", "middle");
+
+    centerText
+        .append("text")
+        .attr("y", -10)
+        .style("font-size", "18px")
+        .style("font-weight", "600")
+        .style("fill", "var(--primary)")
+        .text("FLEX");
+
+    centerText
+        .append("text")
+        .attr("y", 20)
+        .style("font-size", "12px")
+        .style("fill", "var(--neutral-medium)")
+        .text("Position Usage");
+
+    // Add legend
+    const legend = svg
+        .append("g")
+        .attr("class", "legend")
+        .attr("transform", `translate(${radius + 20}, ${-radius * 0.5})`);
+
+    const legendItems = legend
+        .selectAll(".legend-item")
+        .data(data)
+        .enter()
+        .append("g")
+        .attr("class", "legend-item")
+        .attr("transform", (d, i) => `translate(0, ${i * 20})`);
+
+    legendItems
+        .append("rect")
+        .attr("width", 12)
+        .attr("height", 12)
+        .attr("rx", 3)
+        .style("fill", (d) => colorScale(d.position));
+
+    legendItems
+        .append("text")
+        .attr("x", 16)
+        .attr("y", 9)
+        .style("font-size", "11px")
+        .style("font-weight", "500")
+        .text((d) => `${d.position} (${d.percentage}%)`);
+}

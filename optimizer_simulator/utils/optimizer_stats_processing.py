@@ -133,11 +133,32 @@ def get_player_stats(df, projections_df, player_ids_df):
             'total_fpts': 0.0,
             'lineups_used': []
         })
+
+        flex_distribution = {
+            'RB': 0,
+            'WR': 0,
+            'TE': 0
+        }
         
         positions = ['QB', 'RB1', 'RB2', 'WR1', 'WR2', 'WR3', 'TE', 'FLEX', 'DST']
+
+        # First parse players file to get position mappings
+        player_positions = {}
+        for _, row in player_ids_df.iterrows():
+            name = row['name'].replace('-', '#').lower().strip()
+            pos = row['position'].split('/')[0]  # Take first position if multiple
+            player_positions[name] = pos
+
         for idx, row in df.iterrows():
             lineup_fpts = row['Fpts Proj']
             is_top_lineup = idx < total_lineups * 0.1
+
+            # Special handling for FLEX position
+            flex_name = row.get('FLEX_name', '').replace('-', '#').lower().strip()
+            if flex_name:
+                flex_pos = player_positions.get(flex_name)
+                if flex_pos in ['RB', 'WR', 'TE']:
+                    flex_distribution[flex_pos] += 1
             
             for pos in positions:
                 name = row[f'{pos}_name']
@@ -169,6 +190,9 @@ def get_player_stats(df, projections_df, player_ids_df):
             stats['top_lineup_rate'] = (stats['top_lineup_appearances'] / max(1, len(stats['lineups_used']))) * 100
             stats['positions_used'] = list(stats['positions_used'])
             stats['leverage'] = stats['exposure_rate'] - stats['ownership']
+
+        # Add flex distribution to the player stats
+        player_stats['flex_distribution'] = flex_distribution
 
         return dict(player_stats)
     
