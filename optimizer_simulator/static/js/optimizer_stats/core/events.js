@@ -30,6 +30,11 @@ function renderChartsForTab(tabId) {
                         createPositionDonutChart(window.statsData.player_stats)
                     );
                 }
+                if (document.getElementById("player-usage-treemap")) {
+                    renderPromises.push(
+                        createPlayerUsageTreemap(window.statsData.player_stats)
+                    );
+                }
                 break;
 
             case "team-section":
@@ -171,7 +176,7 @@ function openEnlargeModal(container, chartTitle) {
     const enlargedContainer = document.createElement("div");
     enlargedContainer.className = "chart-container";
     enlargedContainer.id = modalChartId;
-    enlargedContainer.style.height = "70vh"; // Use viewport height
+    enlargedContainer.style.height = "80vh"; // Use viewport height
     enlargedContainer.style.width = "100%";
     modalBody.appendChild(enlargedContainer);
 
@@ -201,6 +206,11 @@ function openEnlargeModal(container, chartTitle) {
                 createCorrelationMatrix(
                     window.statsData.player_stats,
                     window.statsData.correlation_stats,
+                    modalChartId
+                );
+            } else if (container.id.includes("player-usage-treemap")) {
+                createPlayerUsageTreemap(
+                    window.statsData.player_stats,
                     modalChartId
                 );
             } else if (container.id.includes("position-donut")) {

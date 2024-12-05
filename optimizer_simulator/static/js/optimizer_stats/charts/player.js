@@ -21,7 +21,7 @@ function createPlayerExposureChart(
     const margin = {
         top: 20,
         right: 20,
-        bottom: 100,
+        bottom: isModal ? 115 : 100,
         left: 60,
     };
 
@@ -127,10 +127,10 @@ function createLeverageScatterPlot(
     const tickLabelSize = isModal ? 14 : 12;
 
     const margin = {
-        top: isModal ? 40 : 30,
-        right: isModal ? 60 : 40,
-        bottom: isModal ? 70 : 100,
-        left: isModal ? 80 : 60,
+        top: 20,
+        right: 20,
+        bottom: 100,
+        left: isModal ? 90 : 60,
     };
 
     const width = container.offsetWidth - margin.left - margin.right;
@@ -557,4 +557,235 @@ function createPositionDonutChart(
         .style("font-size", "11px")
         .style("font-weight", "500")
         .text((d) => `${d.position} (${d.percentage}%)`);
+}
+
+function createPlayerUsageTreemap(
+    playerData,
+    containerId = "player-usage-treemap"
+) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Determine if we're in a modal
+    const isModal = containerId.includes("modal");
+
+    // Clear any existing content
+    d3.select(`#${containerId}`).html("");
+
+    // Set dimensions
+    const margin = {
+        top: isModal ? 40 : 20,
+        right: isModal ? 40 : 20,
+        bottom: isModal ? 0 : 0,
+        left: isModal ? 40 : 20,
+    };
+
+    const width = container.offsetWidth - margin.left - margin.right;
+    const height = (isModal ? 700 : 400) - margin.bottom;
+
+    // Process data into hierarchical structure
+    const positionGroups = {
+        name: "root",
+        children: [],
+    };
+
+    // Create base position groups
+    const basePositions = ["QB", "RB", "WR", "TE", "DST"];
+    const positionMap = {};
+
+    basePositions.forEach((pos) => {
+        positionMap[pos] = {
+            name: pos,
+            children: [],
+        };
+        positionGroups.children.push(positionMap[pos]);
+    });
+
+    // Group players by base position
+    Object.entries(playerData).forEach(([name, stats]) => {
+        if (name === "flex_distribution") return;
+
+        let basePosition = null;
+        if (Array.isArray(stats.positions_used)) {
+            basePosition = basePositions.find((pos) =>
+                stats.positions_used.some((usedPos) => usedPos.startsWith(pos))
+            );
+        } else {
+            basePosition = basePositions.find((pos) =>
+                stats.positions_used.startsWith(pos)
+            );
+        }
+
+        if (basePosition && positionMap[basePosition]) {
+            positionMap[basePosition].children.push({
+                name: name,
+                value: stats.exposures,
+                exposureRate: stats.exposure_rate || 0,
+                avgPoints: stats.avg_fpts || 0,
+                team: stats.team || "",
+            });
+        }
+    });
+
+    // Sort positions and players
+    positionGroups.children.sort((a, b) => {
+        const aTotal = a.children.reduce((sum, child) => sum + child.value, 0);
+        const bTotal = b.children.reduce((sum, child) => sum + child.value, 0);
+        return bTotal - aTotal;
+    });
+
+    positionGroups.children.forEach((position) => {
+        position.children.sort((a, b) => b.value - a.value);
+    });
+
+    // Create color scales
+    const positionColorScale = d3
+        .scaleOrdinal()
+        .domain(basePositions)
+        .range(["#22c55e", "#3b82f6", "#f59e0b", "#ec4899", "#6366f1"]);
+
+    // Create SVG
+    const svg = d3
+        .select(`#${containerId}`)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Create treemap layout
+    const treemap = d3.treemap().size([width, height]).padding(1).round(true);
+
+    // Create hierarchy and compute values
+    const root = d3
+        .hierarchy(positionGroups)
+        .sum((d) => d.value)
+        .sort((a, b) => b.value - a.value);
+
+    // Generate treemap layout
+    treemap(root);
+
+    // Create groups for each cell
+    const cell = svg
+        .selectAll("g")
+        .data(root.leaves())
+        .enter()
+        .append("g")
+        .attr("transform", (d) => `translate(${d.x0},${d.y0})`);
+
+    // Add rectangles
+    cell.append("rect")
+        .attr("width", (d) => d.x1 - d.x0)
+        .attr("height", (d) => d.y1 - d.y0)
+        .attr("fill", (d) => positionColorScale(d.parent.data.name))
+        .attr("opacity", 0.8)
+        .style("transition", "all 0.2s ease")
+        .on("mouseover", function (event, d) {
+            d3.select(this)
+                .attr("opacity", 1)
+                .attr("stroke", "#000")
+                .attr("stroke-width", 2);
+
+            d3
+                .select("#tooltip")
+                .style("opacity", 1)
+                .style("left", event.pageX + 10 + "px")
+                .style("top", event.pageY - 10 + "px")
+                .style("font-size", isModal ? "16px" : "12px").html(`
+                    <strong>${d.data.name}</strong><br/>
+                    Position: ${d.parent.data.name}<br/>
+                    Team: ${d.data.team}<br/>
+                    Exposure: ${d.data.exposureRate.toFixed(1)}%<br/>
+                    Avg Points: ${d.data.avgPoints.toFixed(1)}
+                `);
+        })
+        .on("mouseout", function () {
+            d3.select(this).attr("opacity", 0.8).attr("stroke", "none");
+
+            d3.select("#tooltip").style("opacity", 0);
+        });
+
+    // Add player name labels
+    cell.append("text")
+        .attr("x", 4)
+        .attr("y", 14)
+        .style("font-size", isModal ? "12px" : "10px")
+        .style("font-weight", "500")
+        .style("fill", "white")
+        .style("overflow", "hidden")
+        .style("text-overflow", "ellipsis")
+        .style("white-space", "nowrap")
+        .text((d) => d.data.name)
+        .each(function () {
+            // Get the parent cell width
+            const parentCell = d3.select(this.parentNode);
+            const cellWidth = parentCell.datum().x1 - parentCell.datum().x0;
+
+            // Create a temporary SVG to measure text width
+            const tempSvg = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "svg"
+            );
+            const tempText = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "text"
+            );
+            tempText.textContent = this.textContent;
+            tempText.style.fontSize = this.style.fontSize;
+            tempSvg.appendChild(tempText);
+            document.body.appendChild(tempSvg);
+            const textWidth = tempText.getComputedTextLength();
+            document.body.removeChild(tempSvg);
+
+            // If text is wider than cell, clip it
+            if (textWidth > cellWidth - 8) {
+                const clipId = `clip-${Math.random()
+                    .toString(36)
+                    .substr(2, 9)}`;
+                const clipPath = parentCell
+                    .append("clipPath")
+                    .attr("id", clipId);
+
+                clipPath
+                    .append("rect")
+                    .attr("width", cellWidth - 8)
+                    .attr("height", 20);
+
+                d3.select(this).attr("clip-path", `url(#${clipId})`);
+            }
+        });
+
+    // Calculate legend width and position
+    const legendItemWidth = 80; // Fixed width for each legend item
+    const totalLegendWidth = legendItemWidth * basePositions.length;
+    const legendStartX = (width - totalLegendWidth) / 2; // Center the legend
+
+    // Add centered legend at the bottom
+    const legend = svg
+        .append("g")
+        .attr("class", "legend")
+        .attr("transform", `translate(${legendStartX}, ${height + 20})`);
+
+    const legendItems = legend
+        .selectAll(".legend-item")
+        .data(basePositions)
+        .enter()
+        .append("g")
+        .attr("class", "legend-item")
+        .attr("transform", (d, i) => `translate(${i * legendItemWidth}, 0)`);
+
+    legendItems
+        .append("rect")
+        .attr("width", 12)
+        .attr("height", 12)
+        .attr("rx", 2)
+        .attr("fill", (d) => positionColorScale(d));
+
+    legendItems
+        .append("text")
+        .attr("x", 16)
+        .attr("y", 9)
+        .style("font-size", isModal ? "14px" : "11px")
+        .style("font-weight", "500")
+        .text((d) => d);
 }

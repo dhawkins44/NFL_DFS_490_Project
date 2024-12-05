@@ -6,6 +6,8 @@ function createCorrelationMatrix(
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    d3.select(`#${containerId}`).html("");
+
     // Define topNPlayers as 20
     const topNPlayers = 20;
     const topN = topNPlayers;
@@ -19,10 +21,10 @@ function createCorrelationMatrix(
 
     // Set margins with better spacing
     const margin = {
-        top: isModal ? 160 : 100,
-        right: legendWidth + legendPadding + (isModal ? 60 : 40),
-        bottom: isModal ? 100 : 80,
-        left: isModal ? 160 : 100,
+        top: isModal ? 130 : 100,
+        right: legendWidth + legendPadding + 20,
+        bottom: 10,
+        left: 80,
     };
 
     // Calculate container dimensions
@@ -32,7 +34,7 @@ function createCorrelationMatrix(
     const matrixSize = Math.min(availableWidth, maxMatrixSize);
 
     // Set sizes based on context
-    const fontSize = isModal ? 12 : 10;
+    const fontSize = isModal ? 14 : 10;
     const labelRotation = isModal ? -45 : -65;
 
     // Create SVG with exact dimensions
@@ -42,8 +44,10 @@ function createCorrelationMatrix(
     const svg = d3
         .select(`#${containerId}`)
         .append("svg")
-        .attr("width", svgWidth)
-        .attr("height", svgHeight)
+        .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .style("width", "100%")
+        .style("height", "100%")
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 

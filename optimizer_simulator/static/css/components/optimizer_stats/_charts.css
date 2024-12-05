@@ -1,8 +1,7 @@
 .chart-container {
     position: relative;
-    min-height: 500px;
+    height: 500px;
     width: 100%;
-    height: auto;
     overflow: visible;
     display: flex;
     align-items: center;
@@ -17,7 +16,6 @@
     height: 100%;
     max-width: none;
     max-height: none;
-    display: block;
 }
 
 .chart-container svg text {
