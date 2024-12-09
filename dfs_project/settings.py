@@ -91,9 +91,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '[{asctime}] {levelname} {name} {message}',
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
         },
         'simple': {
             'format': '{levelname} {message}',
@@ -104,30 +103,29 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
-            'level': 'INFO',
+            'level': 'DEBUG',
         },
         'file': {
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'debug.log'),
+            'filename': 'debug.log',
             'formatter': 'verbose',
             'level': 'DEBUG',
         },
     },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'DEBUG',
+    },
     'loggers': {
-        '': {  # Root logger
+        'django': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',  # Set to INFO to capture INFO and above
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'optimizer_simulator': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
             'propagate': True,
-        },
-        'django': {  # Django's default logger
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-        'dfs_project': {  # Replace with your actual app name
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': False,
         },
     },
 }

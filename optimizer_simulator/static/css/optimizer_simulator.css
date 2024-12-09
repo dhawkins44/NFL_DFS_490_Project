@@ -22,6 +22,7 @@
 @import "components/_team-tags.css";
 @import "components/_select2.css";
 @import "components/_config_content.css";
+@import "components/_simulator.css";
 
 /* Optimizer stats */
 @import "components/optimizer_stats/_cards.css";

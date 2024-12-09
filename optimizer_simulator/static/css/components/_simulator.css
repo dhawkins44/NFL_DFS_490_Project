@@ -1,0 +1,410 @@
+/* Simulation Results Table Additions */
+#simulation-results td.win-rate,
+#simulation-results td.roi,
+#simulation-results td.top-rate,
+#simulation-results td.cash-rate {
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Correlation Rules Section */
+.correlation-rule {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.correlation-rule:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.correlation-positions {
+    display: none;
+}
+
+.correlation-position {
+    display: none;
+}
+
+.correlation-value {
+    width: 100px !important;
+    text-align: right;
+}
+
+/* Contest Structure Table */
+#contest-structure {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#contest-structure th {
+    position: sticky;
+    top: 0;
+    background: var(--primary);
+    color: white;
+    z-index: 1;
+}
+
+/* Container for all elements */
+.correlation-rule .input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    width: 100%;
+    height: 38px;
+}
+
+/* Player selection - make it much wider */
+.correlation-rule .correlation-player-select {
+    flex: 6 !important;
+    min-width: 300px !important;
+    height: 38px !important;
+}
+
+/* Position select - make it smaller */
+.correlation-rule .position-select {
+    flex: 0 0 100px !important;
+    min-width: 0 !important;
+    padding: 2px 4px !important;
+    height: 38px !important;
+    font-size: 1rem !important;
+}
+
+/* Correlation value input - make it smaller */
+.correlation-rule .correlation-value {
+    flex: 0 0 80px !important;
+    min-width: 0 !important;
+    padding: 2px 4px !important;
+    text-align: right;
+    height: 38px !important;
+    font-size: 1rem !important;
+}
+
+/* Remove button - make it smaller */
+.correlation-rule .remove-rule-btn {
+    flex: 0 0 40px !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.correlation-rule .remove-rule-btn i {
+    font-size: 1rem;
+}
+
+/* Add warning styles */
+.lineup-warning {
+    color: #dc3545 !important; /* Bootstrap's danger red */
+    font-weight: 600;
+}
+
+/* Config accordion animation */
+#config-content {
+    transition: all 0.3s ease-out;
+}
+
+#config-content.collapsed {
+    display: none;
+    padding: 0;
+}
+
+/* Make sure header is clickable */
+.config-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Player Selection Dropdown */
+.player-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+}
+
+.player-option:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.player-option .img-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.player-option .player-info {
+    flex: 1;
+}
+
+.player-option .player-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.player-option .player-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.select2-container--lineup .select2-selection {
+    border-color: #ced4da;
+    min-height: 38px;
+}
+
+.select2-container--lineup .select2-selection__rendered {
+    line-height: 36px !important;
+    padding-left: 12px !important;
+}
+
+.select2-container--lineup .select2-selection__arrow {
+    height: 36px !important;
+}
+
+.select2-dropdown--lineup {
+    border-color: #ced4da;
+}
+
+/* Salary Tracker */
+.salary-tracker {
+    margin-bottom: 1rem;
+}
+
+.salary-bar {
+    width: 200px;
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    margin-right: 12px;
+    overflow: hidden;
+}
+
+.salary-progress {
+    height: 100%;
+    background-color: #28a745;
+    transition: width 0.3s ease;
+}
+
+.salary-text {
+    font-weight: 600;
+}
+
+.over-salary .salary-progress {
+    background-color: #dc3545;
+}
+
+.over-salary .salary-text {
+    color: #dc3545;
+}
+
+/* Accordion container */
+.accordion-item {
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.accordion-button {
+    border-radius: 0.5rem !important;
+    padding: 1rem;
+}
+
+.accordion-button:not(.collapsed) {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* Fix container expansion */
+#advancedSettings {
+    position: relative;
+    z-index: 1;
+    overflow: visible;
+}
+
+.accordion-collapse.collapse.show {
+    position: relative;
+    z-index: 2;
+    overflow: visible;
+}
+
+/* Ensure accordion content is visible */
+.accordion-body {
+    overflow: visible;
+    position: relative;
+    z-index: 3;
+}
+
+/* Ensure the container expands to fit content */
+.card-body {
+    overflow: visible;
+}
+
+/* Ensure select2 dropdowns appear above other elements */
+.select2-container--open {
+    z-index: 9999;
+}
+
+/* Ensure the lineup builder content is visible */
+#collapseLineupBuilder {
+    overflow: visible !important;
+}
+
+/* Ensure the correlation rules content is visible */
+#collapseCorrelationRules {
+    overflow: visible !important;
+}
+
+/* Ensure the main container expands */
+#simulator-config {
+    overflow: visible;
+}
+
+/* Lineup builder container */
+#collapseLineupBuilder {
+    height: auto;
+    transition: height 0.3s ease;
+}
+
+/* Correlation rules container */
+#collapseCorrelationRules {
+    height: auto;
+    transition: height 0.3s ease;
+}
+
+/* Added Lineups Table */
+#simulator-config #added-lineups table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+#simulator-config #added-lineups td {
+    padding: 0.5rem;
+    vertical-align: middle;
+    width: calc(100% / 10);
+}
+
+/* Make the remove button column narrower */
+#simulator-config #added-lineups td:last-child {
+    width: 50px;
+    padding: 0.25rem;
+}
+
+/* Fix accordion expansion */
+.accordion {
+    overflow: visible !important;
+}
+
+.accordion-item {
+    overflow: visible !important;
+}
+
+.accordion-collapse {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+/* Ensure dropdowns are above accordion content */
+.select2-dropdown {
+    z-index: 9999;
+}
+
+.select2-container--open {
+    z-index: 9999;
+}
+
+/* Enhanced Select2 Styling */
+.select2-container--lineup .select2-dropdown {
+    border-color: #ced4da;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.select2-container--lineup .select2-search__field {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+}
+
+.select2-container--lineup .select2-results__option {
+    padding: 8px;
+}
+
+.select2-container--lineup
+    .select2-results__option--highlighted[aria-selected] {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.select2-container--lineup .select2-results__option[aria-selected="true"] {
+    background-color: #e9ecef;
+}
+
+/* Match optimizer container styles */
+.card-body {
+    min-height: 550px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.accordion {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.accordion-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.accordion-collapse {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.accordion-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure select2 search is visible */
+.select2-container--default .select2-search--inline .select2-search__field {
+    margin-top: 0 !important;
+    height: 30px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 30px !important;
+}
+
+/* Specific styles for simulator lineup builder */
+#simulator-config #added-lineups .player-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: auto;
+}
+
+#simulator-config #added-lineups .player-cell img {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 4px;
+}
+
+#simulator-config #added-lineups .player-cell .player-name {
+    font-size: 0.75rem;
+    text-align: center;
+    max-width: 80px;
+}

@@ -1,41 +1,174 @@
+/* Base container */
 .select2-container--default .select2-selection--multiple {
     border-color: #e2e8f0;
     border-radius: 6px;
-    min-height: 38px;
-    height: 100%;
+    min-height: 32px;
+    padding: 2px 4px;
+    height: auto !important;
 }
 
-.select2-container--default.select2-container--focus
-    .select2-selection--multiple {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(10, 35, 66, 0.15);
+/* Make parent Select2 container grow */
+.select2-container {
+    height: auto !important;
 }
 
+/* Selection choice */
 .select2-container--default
     .select2-selection--multiple
     .select2-selection__choice {
     background: var(--primary);
-    color: white;
+    color: #2d3748;
     border: none;
     border-radius: 4px;
+    margin: 2px;
     padding: 2px 8px;
+}
+
+/* Player option in selection */
+.select2-container--default
+    .select2-selection--multiple
+    .select2-selection__choice
+    .player-option {
+    padding: 0 4px;
+    height: 100%;
+}
+
+/* Remove button */
+.select2-container--default
+    .select2-selection--multiple
+    .select2-selection__choice__remove {
+    color: #4a5568;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    margin-right: 5px;
+    padding: 0 4px;
 }
 
 .select2-container--default
     .select2-selection--multiple
-    .select2-selection__choice__remove {
-    color: white;
-    margin-right: 5px;
+    .select2-selection__choice__remove:hover {
+    color: #e53e3e;
+    background: none;
 }
 
-.select2-container .select2-selection--multiple {
-    min-height: 38px;
-    height: auto;
-    padding: 0.375rem 0.75rem;
+/* Dropdown styling */
+.select2-container--default .select2-dropdown {
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    min-width: 300px;
+}
+
+/* Player option styling */
+.player-option {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    width: 100%;
+}
+
+.player-option img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.player-option .player-info {
+    flex: 1;
+}
+
+.player-option .player-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #2d3748;
+}
+
+.player-option .player-stats {
+    display: flex;
+    gap: 8px;
+    font-size: 0.85em;
+}
+
+.player-option .salary {
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.player-option .projection {
+    color: #48bb78;
+    font-weight: 500;
+}
+
+.player-option .game-info {
+    color: #718096;
+}
+
+/* Results styling */
+.select2-results__options {
+    max-height: 400px;
+    padding: 4px;
+}
+
+.select2-results__option {
+    margin: 2px 0;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+/* Hover and selected states */
+.select2-container--default
+    .select2-results__option--highlighted[aria-selected] {
+    background-color: #edf2f7 !important;
+    color: #2d3748 !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: var(--primary);
+    color: white;
+}
+
+/* Center placeholder text */
+.select2-container--default .select2-search--inline .select2-search__field {
+    margin-top: 0 !important; /* Remove default margin */
+    height: 30px !important; /* Match container height */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 30px !important; /* Center text vertically */
+}
+
+/* Center selected text and clear button */
+.select2-container--default .select2-selection--multiple {
+    display: flex !important;
+    align-items: center !important;
 }
 
 .select2-container--default
     .select2-selection--multiple
     .select2-selection__rendered {
-    line-height: 1.5;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    padding: 2px !important;
+    gap: 4px !important;
+    min-height: 28px !important;
+}
+
+.select2-container--default
+    .select2-selection--multiple
+    .select2-selection__clear {
+    margin: 0 8px !important;
+    font-size: 16px !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.select2-container--default
+    .select2-selection--multiple
+    .select2-selection__choice {
+    display: flex !important;
+    align-items: center !important;
+    margin: 2px !important;
+    flex-shrink: 0 !important;
 }

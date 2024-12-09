@@ -20,11 +20,9 @@ def run_optimizer_view(request):
             # Get configuration from request
             config = json.loads(request.body.decode('utf-8'))
             num_lineups = config.get('num_lineups', 10)
-            min_salary = config.get('min_salary', 49000)
-            max_salary = config.get('max_salary', 50000)
+            num_uniques = config.get('num_uniques', 1)
             
             # Define paths
-            upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
             config_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'config.json')
             player_ids_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'player_ids.csv')
             projections_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'projections.csv')
@@ -41,8 +39,8 @@ def run_optimizer_view(request):
 
             # Build the configuration dictionary to write to config.json
             optimizer_config = {
-                "projection_path": "projections.csv",
-                "player_path": "player_ids.csv",
+                "projection_path": projections_path,
+                "player_path": player_ids_path,
                 "contest_structure_path": "contest_structure.csv",
                 "use_double_te": config.get('use_double_te', True),
                 "global_team_limit": int(config.get('global_team_limit', 4)),
@@ -63,7 +61,6 @@ def run_optimizer_view(request):
                 "matchup_limits": config.get('matchup_limits', {}),
                 "matchup_at_least": config.get('matchup_at_least', {}),
                 "team_limits": config.get('team_limits', {}),
-                "custom_correlations": config.get('custom_correlations', {}),
             }
 
             # Write the config.json file
@@ -74,10 +71,8 @@ def run_optimizer_view(request):
             optimizer = NFL_Optimizer(
                 site='dk',
                 num_lineups=num_lineups,
-                num_uniques=1,
+                num_uniques=num_uniques,
                 config_path=config_path,
-                player_ids_path=player_ids_path,
-                projections_path=projections_path
             )
             optimizer.optimize()
             output_file, lineup_data = optimizer.output()
@@ -114,7 +109,7 @@ def lineups_table_view(request):
     try:
         # Check if required files exist
         upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
-        required_files = ['config.json', 'player_ids.csv', 'projections.csv']
+        required_files = ['player_ids.csv', 'projections.csv']
         files_exist = all(os.path.exists(os.path.join(upload_dir, f)) for f in required_files)
 
         # Get force_upload parameter from query string

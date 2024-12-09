@@ -1,12 +1,72 @@
+// Add these functions at the top level, before the DOMContentLoaded event
+function getPlayerImageUrl(player) {
+    // Handle DST differently
+    if (player.position === "DST") {
+        // Just take the team name before any parentheses and lowercase it
+        const teamName = player.name.split("(")[0].trim().toLowerCase();
+        return `/static/player_images/${teamName}.png`;
+    }
+
+    // Regular player handling
+    const fullName = player.name.split("(")[0].trim().toLowerCase();
+
+    // Split into parts and take only first two parts (first and last name)
+    const nameParts = fullName.split(" ");
+    const firstName = nameParts[0].replace(/[\.\']/g, ""); // Remove periods and apostrophes
+    const lastName = nameParts.length > 1 ? nameParts[1] : "";
+
+    // Remove any Jr, III, etc. from lastName and remove periods and apostrophes
+    const cleanLastName =
+        lastName
+            .split(/\s|\.|\'/)
+            .shift()
+            .replace(/[\.\']/g, "") || "";
+
+    return `/static/player_images/${firstName}_${cleanLastName}.png`;
+}
+
+function getPlaceholderImageUrl() {
+    return "/static/player_images/player_placeholder.png";
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     let players = [];
+    let teams = new Set();
+    let matchups = new Set();
     let isConfigCollapsed = false;
 
     // Fetch players from backend
     fetch("/optimizer_simulator/get_players/")
         .then((response) => response.json())
         .then((data) => {
-            players = data.players;
+            // Transform the players data to match what the optimizer expects
+            players = data.players.map((player) => ({
+                Name: player.Name,
+                ID: player.ID,
+                Team: player.Team,
+                Position: player.Position,
+                Salary: player.Salary,
+                Fpts: player.Fpts,
+                GameInfo: player.GameInfo,
+            }));
+
+            // Extract unique teams and matchups
+            players.forEach((player) => {
+                if (player.Team) teams.add(player.Team);
+                if (player.GameInfo) matchups.add(player.GameInfo);
+            });
+
+            // Convert to array of objects for Select2
+            teams = Array.from(teams).map((team) => ({
+                value: team,
+                label: team,
+            }));
+
+            matchups = Array.from(matchups).map((matchup) => ({
+                value: matchup,
+                label: matchup,
+            }));
+
             initializeAtLeastRules();
             initializeAtMostRules();
             initializePairRules();
@@ -14,7 +74,6 @@ document.addEventListener("DOMContentLoaded", function () {
             initializeTeamLimits();
             initializeMatchupLimits();
             initializeMatchupAtLeast();
-            initializeCustomCorrelations();
         })
         .catch((error) => console.error("Error fetching players:", error));
 
@@ -90,7 +149,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 <select class="form-control select2" name="at_least_players" multiple="multiple" style="flex: 1;">
                     <!-- Options will be populated dynamically -->
                 </select>
-                <button class="btn btn-danger remove-rule-btn">Remove</button>
+                <button class="btn btn-danger remove-rule-btn" title="Remove rule">
+                    <i class="bi bi-trash"></i>
+                </button>
             </div>
         `;
 
@@ -101,19 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectElement = ruleDiv.querySelector(
             `select[name="at_least_players"]`
         );
-        players.forEach((player) => {
-            const option = document.createElement("option");
-            option.value = player.Name;
-            option.text = player.Name;
-            selectElement.appendChild(option);
-        });
-
-        // Initialize Select2
-        $(selectElement).select2({
-            placeholder: "Select players",
-            width: "resolve",
-            allowClear: true,
-        });
+        initializePlayerSelect(selectElement);
 
         // Remove rule event
         ruleDiv
@@ -163,7 +212,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 <select class="form-control select2" name="at_most_players" multiple="multiple" style="flex: 1;">
                     <!-- Options will be populated dynamically -->
                 </select>
-                <button class="btn btn-danger remove-rule-btn">Remove</button>
+                <button class="btn btn-danger remove-rule-btn" title="Remove rule">
+                    <i class="bi bi-trash"></i>
+                </button>
             </div>
         `;
 
@@ -174,19 +225,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectElement = ruleDiv.querySelector(
             `select[name="at_most_players"]`
         );
-        players.forEach((player) => {
-            const option = document.createElement("option");
-            option.value = player.Name;
-            option.text = player.Name;
-            selectElement.appendChild(option);
-        });
-
-        // Initialize Select2
-        $(selectElement).select2({
-            placeholder: "Select players",
-            width: "resolve",
-            allowClear: true,
-        });
+        initializePlayerSelect(selectElement);
 
         // Remove rule event
         ruleDiv
@@ -227,19 +266,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 <label class="me-2"></label>
                 ${createTooltipIcon("Define stacking rules with key positions")}
             </div>
-            
             <div class="d-flex align-items-start gap-4 flex-wrap">
                 <div class="form-group" style="min-width: 120px;">
                     <label>Key Position</label>
                     <select class="form-control" name="pair_key">
                         <option value="QB">QB</option>
+                        <option value="RB">RB</option>
+                        <option value="WR">WR</option>
+                        <option value="TE">TE</option>
+                        <option value="DST">DST</option>
                     </select>
                 </div>
                 
                 <div class="form-group" style="flex: 0 1 auto;">
                     <label>Positions to Pair</label>
                     <div class="position-checkboxes">
-                        <!-- Checkbox options -->
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" name="pair_positions" value="RB">
                             <label class="form-check-label">RB</label>
@@ -256,13 +297,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
                 
                 <div class="form-group" style="width: 80px;">
-                    <!-- Reduced width to save space -->
                     <label>Count</label>
                     <input type="number" class="form-control" name="pair_count" value="1" min="1">
                 </div>
                 
                 <div class="form-group" style="min-width: 130px;">
-                    <!-- Reduced min-width -->
                     <label>Type</label>
                     <select class="form-control" name="pair_type">
                         <option value="same-team">Same Team</option>
@@ -272,63 +311,40 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
                 
                 <div class="form-group" style="min-width: 150px;">
-                    <!-- Adjusted min-width -->
                     <label>Exclude Teams</label>
-                    <div class="team-tags-system">
-                        <div class="team-tags-input">
-                            <input type="text" class="form-control" placeholder="Enter team code">
-                            <button class="btn btn-primary btn-sm add-team-btn">Add</button>
-                        </div>
-                        <div class="team-tags-container">
-                            <!-- Team tags will be added here dynamically -->
-                        </div>
-                    </div>
+                    <select class="form-control team-select" name="exclude_teams" multiple="multiple">
+                        <!-- Options will be populated dynamically -->
+                    </select>
                 </div>
                 
                 <div class="form-group" style="align-self: center;">
-                    <button class="btn btn-danger remove-rule-btn">Remove</button>
+                    <button class="btn btn-danger remove-rule-btn" title="Remove rule">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             </div>
         `;
 
-        // Add team tags functionality
-        const addTeamBtn = ruleDiv.querySelector(".add-team-btn");
-        const teamInput = ruleDiv.querySelector(".team-tags-input input");
-        const tagsContainer = ruleDiv.querySelector(".team-tags-container");
+        container.appendChild(ruleDiv);
+        initializeTooltips(ruleDiv);
 
-        addTeamBtn.addEventListener("click", () => {
-            const teamCode = teamInput.value.trim().toUpperCase();
-            if (teamCode) {
-                addTeamTag(tagsContainer, teamCode);
-                teamInput.value = "";
-            }
-        });
+        // Initialize exclude teams select
+        const excludeTeamsSelect = ruleDiv.querySelector(
+            'select[name="exclude_teams"]'
+        );
+        initializeSearchableDropdown(
+            excludeTeamsSelect,
+            teams,
+            "Select teams to exclude"
+        );
 
-        // Add remove rule functionality
+        // Remove rule event
         ruleDiv
             .querySelector(".remove-rule-btn")
             .addEventListener("click", () => {
                 ruleDiv.remove();
                 updatePairRuleLabels();
             });
-
-        container.appendChild(ruleDiv);
-        initializeTooltips(ruleDiv);
-    }
-
-    function addTeamTag(container, teamCode) {
-        const tag = document.createElement("div");
-        tag.classList.add("team-tag");
-        tag.innerHTML = `
-            <span>${teamCode}</span>
-            <button type="button" class="team-tag-remove" aria-label="Remove team">&times;</button>
-        `;
-
-        tag.querySelector(".team-tag-remove").addEventListener("click", () => {
-            tag.remove();
-        });
-
-        container.appendChild(tag);
     }
 
     function updatePairRuleLabels() {
@@ -411,7 +427,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     </select>
                 </div>
                 <div class="form-group" style="align-self: center;">
-                    <button class="btn btn-danger remove-rule-btn">Remove</button>
+                    <button class="btn btn-danger remove-rule-btn" title="Remove rule">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -470,15 +488,23 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
             <div class="input-group">
                 <span class="input-group-text">Team</span>
-                <input type="text" class="form-control" name="team_name" placeholder="Team Code" style="max-width: 100px;">
+                <select class="form-control team-select" name="team_name">
+                    <!-- Options will be populated dynamically -->
+                </select>
                 <span class="input-group-text">Limit</span>
                 <input type="number" class="form-control" name="team_limit" value="1" min="1" style="max-width: 80px;">
-                <button class="btn btn-danger remove-team-limit-btn">Remove</button>
+                <button class="btn btn-danger remove-team-limit-btn" title="Remove limit">
+                    <i class="bi bi-trash"></i>
+                </button>
             </div>
         `;
 
         container.appendChild(limitDiv);
         initializeTooltips(limitDiv);
+
+        // Initialize team select
+        const teamSelect = limitDiv.querySelector('select[name="team_name"]');
+        initializeSearchableDropdown(teamSelect, teams, "Select team");
 
         // Remove limit event
         limitDiv
@@ -521,15 +547,25 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
             <div class="input-group">
                 <span class="input-group-text">Matchup</span>
-                <input type="text" class="form-control" name="matchup_name" placeholder="Matchup (e.g., DEN@NYG)">
+                <select class="form-control matchup-select" name="matchup_name">
+                    <!-- Options will be populated dynamically -->
+                </select>
                 <span class="input-group-text">Limit</span>
                 <input type="number" class="form-control" name="matchup_limit" value="1" min="1" style="max-width: 80px;">
-                <button class="btn btn-danger remove-matchup-limit-btn">Remove</button>
+                <button class="btn btn-danger remove-matchup-limit-btn" title="Remove limit">
+                    <i class="bi bi-trash"></i>
+                </button>
             </div>
         `;
 
         container.appendChild(limitDiv);
         initializeTooltips(limitDiv);
+
+        // Initialize matchup select
+        const matchupSelect = limitDiv.querySelector(
+            'select[name="matchup_name"]'
+        );
+        initializeSearchableDropdown(matchupSelect, matchups, "Select matchup");
 
         // Remove limit event
         limitDiv
@@ -539,7 +575,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 updateMatchupLimitLabels();
             });
     }
-
     function updateMatchupLimitLabels() {
         const matchupLimits = document.querySelectorAll(
             "#matchupLimitsContainer .matchup-limit"
@@ -572,15 +607,25 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
             <div class="input-group">
                 <span class="input-group-text">Matchup</span>
-                <input type="text" class="form-control" name="matchup_at_least_name" placeholder="Matchup (e.g., BUF@NYJ)">
+                <select class="form-control matchup-select" name="matchup_at_least_name">
+                    <!-- Options will be populated dynamically -->
+                </select>
                 <span class="input-group-text">At Least</span>
                 <input type="number" class="form-control" name="matchup_at_least_count" value="1" min="1" style="max-width: 80px;">
-                <button class="btn btn-danger remove-matchup-at-least-btn">Remove</button>
+                <button class="btn btn-danger remove-matchup-at-least-btn" title="Remove rule">
+                    <i class="bi bi-trash"></i>
+                </button>
             </div>
         `;
 
         container.appendChild(atLeastDiv);
         initializeTooltips(atLeastDiv);
+
+        // Initialize matchup select
+        const matchupSelect = atLeastDiv.querySelector(
+            'select[name="matchup_at_least_name"]'
+        );
+        initializeSearchableDropdown(matchupSelect, matchups, "Select matchup");
 
         // Remove at least event
         atLeastDiv
@@ -599,161 +644,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const label = atLeastDiv.querySelector(".form-label-wrapper label");
             label.textContent = `Matchup At Least ${index + 1}`;
         });
-    }
-
-    // Initialize Custom Correlations
-    function initializeCustomCorrelations() {
-        document
-            .getElementById("addCustomCorrelation")
-            .addEventListener("click", function () {
-                addCustomCorrelation();
-                updateCustomCorrelationLabels();
-            });
-    }
-
-    function addCustomCorrelation() {
-        const container = document.getElementById(
-            "customCorrelationsContainer"
-        );
-        const correlationDiv = document.createElement("div");
-        correlationDiv.classList.add("mb-3", "custom-correlation");
-
-        correlationDiv.innerHTML = `
-            <div class="form-label-wrapper d-flex align-items-center">
-                <label class="me-2"></label>
-                ${createTooltipIcon("Define custom correlations for players")}
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <label>Player</label>
-                    <select class="form-control select2" name="correlation_player">
-                        <!-- Player options will be populated dynamically -->
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label>Correlations</label>
-                    <div class="correlation-positions">
-                        <!-- Positions and correlation inputs -->
-                        <div class="input-group mb-1">
-                            <span class="input-group-text">Position</span>
-                            <select class="form-control" name="correlation_position">
-                                <option value="QB">QB</option>
-                                <option value="RB">RB</option>
-                                <option value="WR">WR</option>
-                                <option value="TE">TE</option>
-                                <option value="DST">DST</option>
-                                <option value="Opp QB">Opp QB</option>
-                                <option value="Opp RB">Opp RB</option>
-                                <option value="Opp WR">Opp WR</option>
-                                <option value="Opp TE">Opp TE</option>
-                                <option value="Opp DST">Opp DST</option>
-                            </select>
-                            <span class="input-group-text">Correlation ${createTooltipIcon(
-                                "Set custom correlation values between -1 and 1. Positive values increase likelihood of players appearing together, negative values decrease it. Values closer to -1 or 1 have stronger effects."
-                            )}</span>
-                            <input type="number" class="form-control" name="correlation_value" placeholder="e.g., 0.5" step="0.01" min="-1" max="1">
-                            <button class="btn btn-danger remove-correlation-position-btn">Remove</button>
-                        </div>
-                    </div>
-                    <button class="btn btn-sm btn-secondary add-correlation-position-btn">Add Correlation</button>
-                </div>
-                <div class="col-md-2 d-flex align-items-center">
-                    <button class="btn btn-danger remove-custom-correlation-btn">Remove</button>
-                </div>
-            </div>
-            <hr>
-        `;
-
-        container.appendChild(correlationDiv);
-        initializeTooltips(correlationDiv);
-
-        // Populate player options
-        const playerSelect = correlationDiv.querySelector(
-            `select[name="correlation_player"]`
-        );
-        players.forEach((player) => {
-            const option = document.createElement("option");
-            option.value = player.Name;
-            option.text = player.Name;
-            playerSelect.appendChild(option);
-        });
-
-        // Initialize Select2 for player selection
-        $(playerSelect).select2({
-            placeholder: "Select player",
-            width: "resolve",
-            allowClear: true,
-        });
-
-        // Event listener to add correlation positions
-        correlationDiv
-            .querySelector(".add-correlation-position-btn")
-            .addEventListener("click", function () {
-                addCorrelationPosition(correlationDiv);
-            });
-
-        // Event listener to remove the entire custom correlation
-        correlationDiv
-            .querySelector(".remove-custom-correlation-btn")
-            .addEventListener("click", function () {
-                correlationDiv.remove();
-                updateCustomCorrelationLabels();
-            });
-
-        setTimeout(() => {
-            updateCustomCorrelationLabels();
-        }, 0);
-    }
-
-    function updateCustomCorrelationLabels() {
-        const customCorrelations = document.querySelectorAll(
-            "#customCorrelationsContainer .custom-correlation"
-        );
-        customCorrelations.forEach((correlationDiv, index) => {
-            const label = correlationDiv.querySelector(
-                ".form-label-wrapper label"
-            );
-            label.textContent = `Custom Correlation ${index + 1}`;
-        });
-    }
-
-    function addCorrelationPosition(correlationDiv) {
-        const positionsContainer = correlationDiv.querySelector(
-            ".correlation-positions"
-        );
-        const positionDiv = document.createElement("div");
-        positionDiv.classList.add("input-group", "mb-1");
-
-        positionDiv.innerHTML = `
-            <span class="input-group-text">Position</span>
-            <select class="form-control" name="correlation_position">
-                <option value="QB">QB</option>
-                <option value="RB">RB</option>
-                <option value="WR">WR</option>
-                <option value="TE">TE</option>
-                <option value="DST">DST</option>
-                <option value="Opp QB">Opp QB</option>
-                <option value="Opp RB">Opp RB</option>
-                <option value="Opp WR">Opp WR</option>
-                <option value="Opp TE">Opp TE</option>
-                <option value="Opp DST">Opp DST</option>
-            </select>
-            <span class="input-group-text">Correlation${createTooltipIcon(
-                "Set custom correlation values between -1 and 1. Positive values increase likelihood of players appearing together, negative values decrease it. Values closer to -1 or 1 have stronger effects."
-            )}</span>
-            <input type="number" class="form-control" name="correlation_value" placeholder="e.g., 0.5" step="0.01" min="-1" max="1">
-            <button class="btn btn-danger remove-correlation-position-btn">Remove</button>
-        `;
-
-        positionsContainer.appendChild(positionDiv);
-        initializeTooltips(positionDiv);
-
-        // Remove correlation position event
-        positionDiv
-            .querySelector(".remove-correlation-position-btn")
-            .addEventListener("click", function () {
-                positionDiv.remove();
-            });
     }
 
     // Collect configuration data on Run Optimizer
@@ -790,7 +680,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 team_limits: {},
                 matchup_limits: {},
                 matchup_at_least: {},
-                custom_correlations: {},
             };
 
             // Collect At Least Rules
@@ -974,41 +863,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
 
-            // Collect Custom Correlations
-            const customCorrelations = document.querySelectorAll(
-                "#customCorrelationsContainer .custom-correlation"
-            );
-            customCorrelations.forEach((correlationDiv) => {
-                const playerName = correlationDiv.querySelector(
-                    `select[name="correlation_player"]`
-                ).value;
-                const correlationPositions = correlationDiv.querySelectorAll(
-                    ".correlation-positions .input-group"
-                );
-
-                if (playerName) {
-                    const correlations = {};
-                    correlationPositions.forEach((positionDiv) => {
-                        const position = positionDiv.querySelector(
-                            `select[name="correlation_position"]`
-                        ).value;
-                        const value = parseFloat(
-                            positionDiv.querySelector(
-                                `input[name="correlation_value"]`
-                            ).value
-                        );
-                        if (position && !isNaN(value)) {
-                            correlations[position] = value;
-                        }
-                    });
-                    if (Object.keys(correlations).length > 0) {
-                        config.custom_correlations[playerName] = correlations;
-                    }
-                }
-            });
-
-            // Now proceed to send config to backend
-
             // Show loading overlay
             document.getElementById("loading-overlay").style.display = "flex";
 
@@ -1103,5 +957,116 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("upload-modal")
         );
         uploadModal.show();
+    }
+
+    // Update the player select initialization in addAtLeastRule and addAtMostRule:
+    function initializePlayerSelect(selectElement) {
+        // Clear any existing options
+        selectElement.innerHTML = "";
+
+        // Add empty option
+        const emptyOption = document.createElement("option");
+        emptyOption.value = "";
+        selectElement.appendChild(emptyOption);
+
+        // Add player options with all necessary data
+        players.forEach((player) => {
+            const option = document.createElement("option");
+            option.value = player.Name;
+            option.text = `${player.Name} (${player.Team} - ${player.Position})`;
+            option.dataset.salary = player.Salary;
+            option.dataset.fpts = player.Fpts;
+            option.dataset.position = player.Position;
+            option.dataset.image = getPlayerImageUrl({
+                name: player.Name,
+                position: player.Position,
+            });
+            option.dataset.gameInfo = player.GameInfo || "";
+            selectElement.appendChild(option);
+        });
+
+        // Initialize Select2 with the same formatting as simulator
+        $(selectElement).select2({
+            placeholder: "Select players",
+            width: "resolve",
+            allowClear: true,
+            templateResult: formatPlayerOption,
+            templateSelection: function (option) {
+                if (!option.id) return option.text;
+                return option.text; // Just show name and team-position for selected
+            },
+            escapeMarkup: function (markup) {
+                return markup;
+            },
+        });
+    }
+
+    // Add this function for Team/Matchup dropdowns
+    function initializeSearchableDropdown(selectElement, options, placeholder) {
+        // Add multiple attribute to the select element
+        selectElement.setAttribute("multiple", "multiple");
+
+        // Clear existing options
+        selectElement.innerHTML = "";
+
+        // Add empty option
+        const emptyOption = document.createElement("option");
+        emptyOption.value = "";
+        selectElement.appendChild(emptyOption);
+
+        // Add all options
+        options.forEach((option) => {
+            const optElement = document.createElement("option");
+            optElement.value = option.value;
+            optElement.text = option.label;
+            selectElement.appendChild(optElement);
+        });
+
+        // Initialize Select2
+        $(selectElement).select2({
+            placeholder: placeholder,
+            allowClear: true,
+            width: "resolve",
+            multiple: true,
+            maximumSelectionLength: 1,
+            language: {
+                maximumSelected: function () {
+                    return "You may only select one option";
+                },
+            },
+        });
+    }
+
+    function formatPlayerOption(option) {
+        if (!option.id) {
+            return option.text;
+        }
+
+        const $option = $(option.element);
+        const imgUrl = $option.data("image");
+        const salary = $option.data("salary");
+        const fpts = $option.data("fpts");
+        const gameInfo = $option.data("gameInfo");
+
+        return $(`
+            <div class="player-option">
+                <img src="${imgUrl}" 
+                     alt="${option.text}"
+                     class="img-option"
+                     onerror="this.src='${getPlaceholderImageUrl()}'">
+                <div class="player-info">
+                    <div class="player-name">${option.text}</div>
+                    <div class="player-stats">
+                        <span class="salary">$${parseInt(
+                            salary
+                        ).toLocaleString()}</span>
+                        <span class="projection">${parseFloat(fpts).toFixed(
+                            1
+                        )} FPTS</span>
+                        <span class="game-info">${gameInfo}</span>
+                    </div>
+                </div>
+            </div>
+        `);
     }
 });

@@ -58,3 +58,30 @@
     gap: 1.5rem;
     flex-wrap: nowrap;
 }
+
+/* Make rule containers grow with content */
+.at-least-rule,
+.at-most-rule,
+.pair-rule,
+.limit-rule {
+    height: auto !important;
+    min-height: 38px !important;
+}
+
+.at-least-rule .input-group,
+.at-most-rule .input-group,
+.pair-rule .input-group,
+.limit-rule .input-group {
+    height: auto !important;
+    min-height: 38px !important;
+    display: flex;
+    align-items: flex-start !important;
+}
+
+.at-least-rule .input-group > *,
+.at-most-rule .input-group > *,
+.pair-rule .input-group > *,
+.limit-rule .input-group > * {
+    height: auto !important;
+    min-height: 38px !important;
+}

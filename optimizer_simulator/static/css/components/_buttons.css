@@ -136,3 +136,23 @@
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* Style remove buttons */
+.remove-rule-btn,
+.remove-team-limit-btn,
+.remove-matchup-limit-btn,
+.remove-matchup-at-least-btn {
+    width: 38px !important; /* Match field height */
+    height: 38px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.remove-rule-btn i,
+.remove-team-limit-btn i,
+.remove-matchup-limit-btn i,
+.remove-matchup-at-least-btn i {
+    font-size: 1.1rem;
+}

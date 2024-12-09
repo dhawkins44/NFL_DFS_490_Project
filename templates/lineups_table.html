@@ -4,7 +4,7 @@
 
 <div class="container mt-4">
     <!-- Configuration Section -->
-     {% include 'optimizer_config.html' %}
+    {% include 'optimizer_config.html' %}
 
     <!-- Lineup Navigation and Actions -->
     <div class="d-flex justify-content-between align-items-center my-3">
@@ -31,14 +31,13 @@
             <a href="#" class="btn btn-secondary" id="download-csv" style="display: none;">
                 <i class="fas fa-download"></i> Download CSV
             </a>
-            <a id="view-stats" href="/optimizer_simulator/optimizer_stats/" class="btn btn-primary" style="display: none;">View Stats</a>
         </div>
     </div>
 
-    <!-- Lineups Section -->
+    <!-- Single Lineup Display -->
     <div id="lineups-section" style="display: none;">
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
+            <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>Position</th>
@@ -56,7 +55,7 @@
         </div>
 
         <!-- Lineup Summary -->
-        <div class="lineup-summary">
+        <div class="lineup-summary mt-3">
             <div class="row">
                 <div class="col-md-3">
                     <strong>Total Salary:</strong> <span id="total-salary">$0</span>
@@ -71,16 +70,6 @@
                     <strong>Ownership Sum:</strong> <span id="ownership-sum">0%</span>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" style="display: none;" class="position-fixed top-0 start-0 w-100 h-100">
-        <div class="position-absolute top-50 start-50 translate-middle text-center">
-            <div class="spinner-border text-primary mb-2" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <div>Generating lineups...</div>
         </div>
     </div>
 </div>

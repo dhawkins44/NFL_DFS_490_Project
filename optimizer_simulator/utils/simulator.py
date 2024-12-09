@@ -9,6 +9,8 @@ import pulp as plp
 import multiprocessing as mp
 import pandas as pd
 import statistics
+import logging
+from django.conf import settings
 
 # import fuzzywuzzy
 import itertools
@@ -20,6 +22,10 @@ import seaborn as sns
 from collections import Counter
 from numba import jit
 import datetime
+
+import traceback
+
+logger = logging.getLogger(__name__)
 
 @jit(nopython=True)
 def salary_boost(salary, max_salary):
@@ -81,24 +87,30 @@ class NFL_GPP_Simulator:
         num_iterations,
         use_contest_data,
         use_lineup_input,
+        config_path=None,
     ):
         self.site = site
         self.use_lineup_input = use_lineup_input
-        self.load_config()
+        self.load_config(config_path)
+        logger.debug(f"Config loaded from {config_path}")
         self.load_rules()
+        logger.debug(f"Rules loaded")
 
-        projection_path = os.path.join(
-            os.path.dirname(__file__),
-            "../{}_data/{}".format(site, self.config["projection_path"]),
-        )
-        self.load_projections(projection_path)
+        # projection_path = os.path.join(
+        #     os.path.dirname(__file__),
+        #     "../{}_data/{}".format(site, self.config["projection_path"]),
+        # )
+        self.load_projections(self.config["projection_path"])
+        logger.debug(f"Projection data loaded")
 
-        player_path = os.path.join(
-            os.path.dirname(__file__),
-            "../{}_data/{}".format(site, self.config["player_path"]),
-        )
-        self.load_player_ids(player_path)
+        # player_path = os.path.join(
+        #     os.path.dirname(__file__),
+        #     "../{}_data/{}".format(site, self.config["player_path"]),
+        # )
+        self.load_player_ids(self.config["player_path"])
+        logger.debug(f"Player IDs loaded")
         self.load_team_stacks()
+        logger.debug(f"Team stacks loaded")
 
         # ownership_path = os.path.join(
         #    os.path.dirname(__file__),
@@ -148,10 +160,7 @@ class NFL_GPP_Simulator:
 
         self.use_contest_data = use_contest_data
         if use_contest_data:
-            contest_path = os.path.join(
-                os.path.dirname(__file__),
-                "../{}_data/{}".format(site, self.config["contest_structure_path"]),
-            )
+            contest_path = self.config["contest_structure_path"]
             self.load_contest_data(contest_path)
             print("Contest payout structure loaded.")
         else:
@@ -609,12 +618,12 @@ class NFL_GPP_Simulator:
                                 ] = correlation_value
 
     # Load config from file
-    def load_config(self):
-        with open(
-            os.path.join(os.path.dirname(__file__), "../config.json"),
-            encoding="utf-8-sig",
-        ) as json_file:
-            self.config = json.load(json_file)
+    def load_config(self, config_path):
+        if not config_path:
+            config_path = os.path.join(os.path.dirname(__file__), "data", "config.json")
+        with open(config_path) as json_file:
+            config = self.config = json.load(json_file)
+        return config
 
     # Load projections from file
     def load_projections(self, path):
@@ -641,6 +650,8 @@ class NFL_GPP_Simulator:
                 else:
                     fieldFpts = fpts
                 position = [pos for pos in row["position"].split("/")]
+                if position == "D" or position == "DST":
+                    position = ["DST"]
                 position.sort()
                 # if qb and dst not in position add flex
                 if self.site == "fd":
@@ -2142,294 +2153,319 @@ class NFL_GPP_Simulator:
             str(self.num_iterations)
             + " tournament simulations finished in "
             + str(diff)
-            + "seconds. Outputting."
+            + " seconds. Outputting."
         )
 
     def output(self):
-        unique = {}
-        for index, x in self.field_lineups.items():
-            # if index == 0:
-            #    print(x)
-            lu_type = x["Type"]
-            salary = 0
-            fpts_p = 0
-            fieldFpts_p = 0
-            ceil_p = 0
-            own_p = []
-            lu_names = []
-            lu_teams = []
-            qb_stack = 0
-            qb_tm = ""
-            players_vs_def = 0
-            def_opps = []
-            simDupes = x['Count']
-            for id in x["Lineup"]:
-                for k, v in self.player_dict.items():
-                    if v["ID"] == id:
-                        if "DST" in v["Position"]:
-                            def_opps.append(v["Opp"])
-                        if "QB" in v["Position"]:
-                            qb_tm = v["Team"]
-            for id in x["Lineup"]:
-                for k, v in self.player_dict.items():
-                    if v["ID"] == id:
-                        salary += v["Salary"]
-                        fpts_p += v["Fpts"]
-                        fieldFpts_p += v["fieldFpts"]
-                        ceil_p += v["Ceiling"]
-                        own_p.append(v["Ownership"] / 100)
-                        lu_names.append(v["Name"])
-                        if "DST" not in v["Position"]:
-                            lu_teams.append(v["Team"])
-                            if v["Team"] in def_opps:
-                                players_vs_def += 1
-                        continue
-            counter = collections.Counter(lu_teams)
-            stacks = counter.most_common()
+        try:
+            unique = {}
+            for index, x in self.field_lineups.items():
+                # if index == 0:
+                #    print(x)
+                lu_type = x["Type"]
+                salary = 0
+                fpts_p = 0
+                fieldFpts_p = 0
+                ceil_p = 0
+                own_p = []
+                lu_names = []
+                lu_teams = []
+                qb_stack = 0
+                qb_tm = ""
+                players_vs_def = 0
+                def_opps = []
+                simDupes = x['Count']
+                for id in x["Lineup"]:
+                    for k, v in self.player_dict.items():
+                        if v["ID"] == id:
+                            if "DST" in v["Position"]:
+                                def_opps.append(v["Opp"])
+                            if "QB" in v["Position"]:
+                                qb_tm = v["Team"]
 
-            # Find the QB team in stacks and set it as primary stack, remove it from stacks and subtract 1 to make sure qb isn't counted
-            for s in stacks:
-                if s[0] == qb_tm:
-                    primaryStack = str(qb_tm) + " " + str((s[1]))
-                    stacks.remove(s)
-                    break
+                for id in x["Lineup"]:
+                    for k, v in self.player_dict.items():
+                        if v["ID"] == id:
+                            salary += v["Salary"]
+                            fpts_p += v["Fpts"]
+                            fieldFpts_p += v["fieldFpts"]
+                            ceil_p += v["Ceiling"]
+                            own_p.append(v["Ownership"] / 100)
+                            lu_names.append(v["Name"])
+                            if "DST" not in v["Position"]:
+                                lu_teams.append(v["Team"])
+                                if v["Team"] in def_opps:
+                                    players_vs_def += 1
+                            continue
 
-            # After removing QB team, the first team in stacks will be the team with most players not in QB stack
-            secondaryStack = str(stacks[0][0]) + " " + str(stacks[0][1])
-            own_p = np.prod(own_p)
-            win_p = round(x["Wins"] / self.num_iterations * 100, 2)
-            top10_p = round(x["Top1Percent"] / self.num_iterations * 100, 2)
-            cash_p = round(x["Cashes"] / self.num_iterations * 100, 2)
-            if self.site == "dk":
-                if self.use_contest_data:
-                    roi_p = round(
-                        x["ROI"] / self.entry_fee / self.num_iterations * 100, 2
-                    )
-                    roi_round = round(x["ROI"] / x['Count'] / self.num_iterations, 2)
-                    lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},${},{}%,{}%,{}%,{},${},{},{},{},{},{}".format(
-                        lu_names[1].replace("#", "-"),
-                        x["Lineup"][1],
-                        lu_names[2].replace("#", "-"),
-                        x["Lineup"][2],
-                        lu_names[3].replace("#", "-"),
-                        x["Lineup"][3],
-                        lu_names[4].replace("#", "-"),
-                        x["Lineup"][4],
-                        lu_names[5].replace("#", "-"),
-                        x["Lineup"][5],
-                        lu_names[6].replace("#", "-"),
-                        x["Lineup"][6],
-                        lu_names[7].replace("#", "-"),
-                        x["Lineup"][7],
-                        lu_names[8].replace("#", "-"),
-                        x["Lineup"][8],
-                        lu_names[0].replace("#", "-"),
-                        x["Lineup"][0],
-                        fpts_p,
-                        fieldFpts_p,
-                        ceil_p,
-                        salary,
-                        win_p,
-                        top10_p,
-                        roi_p,
-                        own_p,
-                        roi_round,
-                        primaryStack,
-                        secondaryStack,
-                        players_vs_def,
-                        lu_type,
-                        simDupes,
-                    )
-                else:
-                    lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},{},{}%,{}%,{}%,{},{},{},{},{}".format(
-                        lu_names[1].replace("#", "-"),
-                        x["Lineup"][1],
-                        lu_names[2].replace("#", "-"),
-                        x["Lineup"][2],
-                        lu_names[3].replace("#", "-"),
-                        x["Lineup"][3],
-                        lu_names[4].replace("#", "-"),
-                        x["Lineup"][4],
-                        lu_names[5].replace("#", "-"),
-                        x["Lineup"][5],
-                        lu_names[6].replace("#", "-"),
-                        x["Lineup"][6],
-                        lu_names[7].replace("#", "-"),
-                        x["Lineup"][7],
-                        lu_names[8].replace("#", "-"),
-                        x["Lineup"][8],
-                        lu_names[0].replace("#", "-"),
-                        x["Lineup"][0],
-                        fpts_p,
-                        fieldFpts_p,
-                        ceil_p,
-                        salary,
-                        win_p,
-                        top10_p,
-                        own_p,
-                        primaryStack,
-                        secondaryStack,
-                        players_vs_def,
-                        lu_type,
-                        simDupes
-                    )
-            elif self.site == "fd":
-                if self.use_contest_data:
-                    roi_p = round(
-                        x["ROI"] / x['Count'] / self.entry_fee / self.num_iterations * 100, 2
-                    )
-                    roi_round = round(x["ROI"] / x['Count'] / self.num_iterations, 2)
-                    lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{}%,{},${},{},{},{},{},{}".format(
-                        x["Lineup"][1],
-                        lu_names[1].replace("#", "-"),
-                        x["Lineup"][2],
-                        lu_names[2].replace("#", "-"),
-                        x["Lineup"][3],
-                        lu_names[3].replace("#", "-"),
-                        x["Lineup"][4],
-                        lu_names[4].replace("#", "-"),
-                        x["Lineup"][5],
-                        lu_names[5].replace("#", "-"),
-                        x["Lineup"][6],
-                        lu_names[6].replace("#", "-"),
-                        x["Lineup"][7],
-                        lu_names[7].replace("#", "-"),
-                        x["Lineup"][8],
-                        lu_names[8].replace("#", "-"),
-                        x["Lineup"][0],
-                        lu_names[0].replace("#", "-"),
-                        fpts_p,
-                        fieldFpts_p,
-                        ceil_p,
-                        salary,
-                        win_p,
-                        top10_p,
-                        roi_p,
-                        own_p,
-                        roi_round,
-                        primaryStack,
-                        secondaryStack,
-                        players_vs_def,
-                        lu_type,
-                        simDupes
-                    )
-                else:
-                    lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{},{},{},{},{},{}".format(
-                        x["Lineup"][1],
-                        lu_names[1].replace("#", "-"),
-                        x["Lineup"][2],
-                        lu_names[2].replace("#", "-"),
-                        x["Lineup"][3],
-                        lu_names[3].replace("#", "-"),
-                        x["Lineup"][4],
-                        lu_names[4].replace("#", "-"),
-                        x["Lineup"][5],
-                        lu_names[5].replace("#", "-"),
-                        x["Lineup"][6],
-                        lu_names[6].replace("#", "-"),
-                        x["Lineup"][7],
-                        lu_names[7].replace("#", "-"),
-                        x["Lineup"][8],
-                        lu_names[8].replace("#", "-"),
-                        x["Lineup"][0],
-                        lu_names[0].replace("#", "-"),
-                        fpts_p,
-                        fieldFpts_p,
-                        ceil_p,
-                        salary,
-                        win_p,
-                        top10_p,
-                        own_p,
-                        primaryStack,
-                        secondaryStack,
-                        players_vs_def,
-                        lu_type,
-                        simDupes
-                    )
-            unique[index] = lineup_str
+                try:
+                    counter = collections.Counter(lu_teams)
+                    stacks = counter.most_common()
 
-        out_path = os.path.join(
-            os.path.dirname(__file__),
-            "../output/{}_gpp_sim_lineups_{}_{}.csv".format(
-                self.site, self.field_size, self.num_iterations
-            ),
-        )
-        with open(out_path, "w") as f:
-            if self.site == "dk":
-                if self.use_contest_data:
-                    f.write(
-                        "QB,RB,RB,WR,WR,WR,TE,FLEX,DST,Fpts Proj,Field Fpts Proj,Ceiling,Salary,Win %,Top 10%,ROI%,Proj. Own. Product,Avg. Return,Stack1 Type,Stack2 Type,Players vs DST,Lineup Type, Sim Dupes\n"
-                    )
-                else:
-                    f.write(
-                        "QB,RB,RB,WR,WR,WR,TE,FLEX,DST,Fpts Proj,Field Fpts Proj,Ceiling,Salary,Win %,Top 10%, Proj. Own. Product,Stack1 Type,Stack2 Type,Players vs DST,Lineup Type, Sim Dupes\n"
-                    )
-            elif self.site == "fd":
-                if self.use_contest_data:
-                    f.write(
-                        "QB,RB,RB,WR,WR,WR,TE,FLEX,DST,Fpts Proj,Field Fpts Proj,Ceiling,Salary,Win %,Top 10%,ROI%,Proj. Own. Product,Avg. Return,Stack1 Type,Stack2 Type,Players vs DST,Lineup Type, Sim Dupes\n"
-                    )
-                else:
-                    f.write(
-                        "QB,RB,RB,WR,WR,WR,TE,FLEX,DST,Fpts Proj,Field Fpts Proj,Ceiling,Salary,Win %,Top 10%,Proj. Own. Product,Stack1 Type,Stack2 Type,Players vs DST,Lineup Type, Sim Dupes\n"
-                    )
+                    # Find the QB team in stacks and set it as primary stack, remove it from stacks and subtract 1 to make sure qb isn't counted
+                    primaryStack = "No Stack"  # Default value
+                    secondaryStack = "No Stack"  # Default value
 
-            for fpts, lineup_str in unique.items():
-                f.write("%s\n" % lineup_str)
+                    for s in stacks:
+                        if s[0] == qb_tm:
+                            primaryStack = str(qb_tm) + " " + str((s[1]))
+                            stacks.remove(s)
+                            break
 
-        out_path = os.path.join(
-            os.path.dirname(__file__),
-            "../output/{}_gpp_sim_player_exposure_{}_{}.csv".format(
-                self.site, self.field_size, self.num_iterations
-            ),
-        )
-        with open(out_path, "w") as f:
-            f.write(
-                "Player,Position,Team,Win%,Top1%,Sim. Own%,Proj. Own%,Avg. Return\n"
-            )
-            unique_players = {}
-            for val in self.field_lineups.values():
-                for player in val["Lineup"]:
-                    if player not in unique_players:
-                        unique_players[player] = {
-                            "Wins": val["Wins"],
-                            "Top1Percent": val["Top1Percent"],
-                            "In": val['Count'],
-                            "ROI": val["ROI"],
-                        }
+                        # Only try to get secondary stack if there are remaining stacks
+                        if stacks:  # Check if any stacks remain after removing QB stack
+                            secondaryStack = str(stacks[0][0]) + " " + str(stacks[0][1])
+
+                except Exception as e:
+                    logger.error(f"Error processing stacks for lineup {index}: {str(e)}")
+                    primaryStack = "Error"
+                    secondaryStack = "Error"
+
+                # After removing QB team, the first team in stacks will be the team with most players not in QB stack
+                # secondaryStack = str(stacks[0][0]) + " " + str(stacks[0][1])
+                own_p = np.prod(own_p)
+                win_p = round(x["Wins"] / self.num_iterations * 100, 2)
+                top10_p = round(x["Top1Percent"] / self.num_iterations * 100, 2)
+                cash_p = round(x["Cashes"] / self.num_iterations * 100, 2)
+                if self.site == "dk":
+                    if self.use_contest_data:
+                        roi_p = round(
+                            x["ROI"] / self.entry_fee / self.num_iterations * 100, 2
+                        )
+                        roi_round = round(x["ROI"] / x['Count'] / self.num_iterations, 2)
+                        lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},${},{}%,{}%,{}%,{},${},{},{},{},{},{}".format(
+                            lu_names[1].replace("#", "-"),
+                            x["Lineup"][1],
+                            lu_names[2].replace("#", "-"),
+                            x["Lineup"][2],
+                            lu_names[3].replace("#", "-"),
+                            x["Lineup"][3],
+                            lu_names[4].replace("#", "-"),
+                            x["Lineup"][4],
+                            lu_names[5].replace("#", "-"),
+                            x["Lineup"][5],
+                            lu_names[6].replace("#", "-"),
+                            x["Lineup"][6],
+                            lu_names[7].replace("#", "-"),
+                            x["Lineup"][7],
+                            lu_names[8].replace("#", "-"),
+                            x["Lineup"][8],
+                            lu_names[0].replace("#", "-"),
+                            x["Lineup"][0],
+                            fpts_p,
+                            fieldFpts_p,
+                            ceil_p,
+                            salary,
+                            win_p,
+                            top10_p,
+                            roi_p,
+                            own_p,
+                            roi_round,
+                            primaryStack,
+                            secondaryStack,
+                            players_vs_def,
+                            lu_type,
+                            simDupes,
+                        )
                     else:
-                        unique_players[player]["Wins"] = (
-                            unique_players[player]["Wins"] + val["Wins"]
+                        lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},{},{}%,{}%,{}%,{},{},{}".format(
+                            lu_names[1].replace("#", "-"),
+                            x["Lineup"][1],
+                            lu_names[2].replace("#", "-"),
+                            x["Lineup"][2],
+                            lu_names[3].replace("#", "-"),
+                            x["Lineup"][3],
+                            lu_names[4].replace("#", "-"),
+                            x["Lineup"][4],
+                            lu_names[5].replace("#", "-"),
+                            x["Lineup"][5],
+                            lu_names[6].replace("#", "-"),
+                            x["Lineup"][6],
+                            lu_names[7].replace("#", "-"),
+                            x["Lineup"][7],
+                            lu_names[8].replace("#", "-"),
+                            x["Lineup"][8],
+                            lu_names[0].replace("#", "-"),
+                            x["Lineup"][0],
+                            fpts_p,
+                            fieldFpts_p,
+                            ceil_p,
+                            salary,
+                            win_p,
+                            top10_p,
+                            own_p,
+                            primaryStack,
+                            secondaryStack,
+                            players_vs_def,
+                            lu_type,
+                            simDupes
                         )
-                        unique_players[player]["Top1Percent"] = (
-                            unique_players[player]["Top1Percent"] + val["Top1Percent"]
+                elif self.site == "fd":
+                    if self.use_contest_data:
+                        roi_p = round(
+                            x["ROI"] / x['Count'] / self.entry_fee / self.num_iterations * 100, 2
                         )
-                        unique_players[player]["In"] = unique_players[player]["In"] + val['Count']
-                        unique_players[player]["ROI"] = (
-                            unique_players[player]["ROI"] + val["ROI"]
+                        roi_round = round(x["ROI"] / x['Count'] / self.num_iterations, 2)
+                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{}%,{},${},{},{},{},{},{}".format(
+                            x["Lineup"][1],
+                            lu_names[1].replace("#", "-"),
+                            x["Lineup"][2],
+                            lu_names[2].replace("#", "-"),
+                            x["Lineup"][3],
+                            lu_names[3].replace("#", "-"),
+                            x["Lineup"][4],
+                            lu_names[4].replace("#", "-"),
+                            x["Lineup"][5],
+                            lu_names[5].replace("#", "-"),
+                            x["Lineup"][6],
+                            lu_names[6].replace("#", "-"),
+                            x["Lineup"][7],
+                            lu_names[7].replace("#", "-"),
+                            x["Lineup"][8],
+                            lu_names[8].replace("#", "-"),
+                            x["Lineup"][0],
+                            lu_names[0].replace("#", "-"),
+                            fpts_p,
+                            fieldFpts_p,
+                            ceil_p,
+                            salary,
+                            win_p,
+                            top10_p,
+                            roi_p,
+                            own_p,
+                            roi_round,
+                            primaryStack,
+                            secondaryStack,
+                            players_vs_def,
+                            lu_type,
+                            simDupes
                         )
-            top1PercentCount = (0.01) * self.field_size
-            for player, data in unique_players.items():
-                field_p = round(data["In"] / self.field_size * 100, 2)
-                win_p = round(data["Wins"] / self.num_iterations * 100, 2)
-                top10_p = round(data["Top1Percent"] / top1PercentCount / self.num_iterations  * 100, 2)
-                roi_p = round(data["ROI"] / data["In"] / self.num_iterations, 2)
-                for k, v in self.player_dict.items():
-                    if player == v["ID"]:
-                        proj_own = v["Ownership"]
-                        p_name = v["Name"]
-                        position = "/".join(v.get("Position"))
-                        team = v.get("Team")
-                        break
+                    else:
+                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{},{},{},{},{},{}".format(
+                            x["Lineup"][1],
+                            lu_names[1].replace("#", "-"),
+                            x["Lineup"][2],
+                            lu_names[2].replace("#", "-"),
+                            x["Lineup"][3],
+                            lu_names[3].replace("#", "-"),
+                            x["Lineup"][4],
+                            lu_names[4].replace("#", "-"),
+                            x["Lineup"][5],
+                            lu_names[5].replace("#", "-"),
+                            x["Lineup"][6],
+                            lu_names[6].replace("#", "-"),
+                            x["Lineup"][7],
+                            lu_names[7].replace("#", "-"),
+                            x["Lineup"][8],
+                            lu_names[8].replace("#", "-"),
+                            x["Lineup"][0],
+                            lu_names[0].replace("#", "-"),
+                            fpts_p,
+                            fieldFpts_p,
+                            ceil_p,
+                            salary,
+                            win_p,
+                            top10_p,
+                            own_p,
+                            primaryStack,
+                            secondaryStack,
+                            players_vs_def,
+                            lu_type,
+                            simDupes
+                        )
+                unique[index] = lineup_str
+
+            formatted_timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            filename_out = (
+                f"{self.site}_gpp_sim_lineups_{self.field_size}_{self.num_iterations}_{formatted_timestamp}.csv"
+            )
+            out_dir = os.path.join(settings.MEDIA_ROOT, "simulator_output")
+            os.makedirs(out_dir, exist_ok=True)
+            out_path = os.path.join(out_dir, filename_out)
+            with open(out_path, "w") as f:
+                if self.site == "dk":
+                    if self.use_contest_data:
+                        f.write(
+                            "QB,RB,RB,WR,WR,WR,TE,FLEX,DST,Fpts Proj,Field Fpts Proj,Ceiling,Salary,Win %,Top 10%,ROI%,Proj. Own. Product,Avg. Return,Stack1 Type,Stack2 Type,Players vs DST,Lineup Type, Sim Dupes\n"
+                        )
+                    else:
+                        f.write(
+                            "QB,RB,RB,WR,WR,WR,TE,FLEX,DST,Fpts Proj,Field Fpts Proj,Ceiling,Salary,Win %,Top 10%, Proj. Own. Product,Stack1 Type,Stack2 Type,Players vs DST,Lineup Type, Sim Dupes\n"
+                        )
+                elif self.site == "fd":
+                    if self.use_contest_data:
+                        f.write(
+                            "QB,RB,RB,WR,WR,WR,TE,FLEX,DST,Fpts Proj,Field Fpts Proj,Ceiling,Salary,Win %,Top 10%,ROI%,Proj. Own. Product,Avg. Return,Stack1 Type,Stack2 Type,Players vs DST,Lineup Type, Sim Dupes\n"
+                        )
+                    else:
+                        f.write(
+                            "QB,RB,RB,WR,WR,WR,TE,FLEX,DST,Fpts Proj,Field Fpts Proj,Ceiling,Salary,Win %,Top 10%,Proj. Own. Product,Stack1 Type,Stack2 Type,Players vs DST,Lineup Type, Sim Dupes\n"
+                        )
+
+                for fpts, lineup_str in unique.items():
+                    f.write("%s\n" % lineup_str)
+
+            formatted_timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            filename_out = (
+                f"{self.site}_gpp_sim_player_exposure_{self.field_size}_{self.num_iterations}_{formatted_timestamp}.csv"
+            )
+            out_dir = os.path.join(settings.MEDIA_ROOT, "simulator_output")
+            os.makedirs(out_dir, exist_ok=True)
+            out_path = os.path.join(out_dir, filename_out)
+            with open(out_path, "w") as f:
                 f.write(
-                    "{},{},{},{}%,{}%,{}%,{}%,${}\n".format(
-                        p_name.replace("#", "-"),
-                        position,
-                        team,
-                        win_p,
-                        top10_p,
-                        field_p,
-                        proj_own,
-                        roi_p,
-                    )
+                    "Player,Position,Team,Win%,Top1%,Sim. Own%,Proj. Own%,Avg. Return\n"
                 )
+                unique_players = {}
+                for val in self.field_lineups.values():
+                    for player in val["Lineup"]:
+                        if player not in unique_players:
+                            unique_players[player] = {
+                                "Wins": val["Wins"],
+                                "Top1Percent": val["Top1Percent"],
+                                "In": val['Count'],
+                                "ROI": val["ROI"],
+                            }
+                        else:
+                            unique_players[player]["Wins"] = (
+                                unique_players[player]["Wins"] + val["Wins"]
+                            )
+                            unique_players[player]["Top1Percent"] = (
+                                unique_players[player]["Top1Percent"] + val["Top1Percent"]
+                            )
+                            unique_players[player]["In"] = unique_players[player]["In"] + val['Count']
+                            unique_players[player]["ROI"] = (
+                                unique_players[player]["ROI"] + val["ROI"]
+                            )
+                top1PercentCount = (0.01) * self.field_size
+                for player, data in unique_players.items():
+                    field_p = round(data["In"] / self.field_size * 100, 2)
+                    win_p = round(data["Wins"] / self.num_iterations * 100, 2)
+                    top10_p = round(data["Top1Percent"] / top1PercentCount / self.num_iterations  * 100, 2)
+                    roi_p = round(data["ROI"] / data["In"] / self.num_iterations, 2)
+                    for k, v in self.player_dict.items():
+                        if player == v["ID"]:
+                            proj_own = v["Ownership"]
+                            p_name = v["Name"]
+                            position = "/".join(v.get("Position"))
+                            team = v.get("Team")
+                            break
+                    f.write(
+                        "{},{},{},{}%,{}%,{}%,{}%,${}\n".format(
+                            p_name.replace("#", "-"),
+                            position,
+                            team,
+                            win_p,
+                            top10_p,
+                            field_p,
+                            proj_own,
+                            roi_p,
+                        )
+                    )
+
+            return out_path
+        
+        except Exception as e:
+            logger.error(f"Error in output method: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise

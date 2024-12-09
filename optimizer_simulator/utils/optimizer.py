@@ -14,7 +14,7 @@ from collections import Counter
 from django.conf import settings
 
 class NFL_Optimizer:
-    def __init__(self, site=None, num_lineups=0, num_uniques=1, config_path=None, player_ids_path=None, projections_path=None):
+    def __init__(self, site=None, num_lineups=0, num_uniques=1, config_path=None):
         self.site = site
         self.num_lineups = int(num_lineups)
         self.num_uniques = int(num_uniques)
@@ -33,8 +33,8 @@ class NFL_Optimizer:
         self.problem = plp.LpProblem("NFL", plp.LpMaximize)
 
         # Load projections and player IDs
-        self.load_projections(projections_path)
-        self.load_player_ids(player_ids_path)
+        self.load_projections(self.config["projection_path"])
+        self.load_player_ids(self.config["player_path"])
         self.assertPlayerDict()
 
     def flatten(self, list):

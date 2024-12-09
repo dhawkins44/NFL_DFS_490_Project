@@ -94,8 +94,6 @@ def get_player_stats(df, projections_df, player_ids_df):
                         no_dots = original_name.replace('.', '')
                         ownership_lookup[no_dots] = own_value
                         ownership_lookup[no_dots.lower()] = own_value
-
-                print(f"Added ownership for {original_name}: {own_value}")  # Debug print
                     
             except Exception as e:
                 print(f"Error processing row in projections: {row}")

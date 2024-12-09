@@ -9,15 +9,23 @@ import json
 
 logger = logging.getLogger(__name__)
 
+def clean_numeric_value(value):
+    """Convert NaN or invalid numeric values to 0"""
+    if pd.isna(value) or value == 'NaN' or value == float('nan'):
+        return 0
+    return value
+
 def upload_file(request):
+    # Check if files exist
+    upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+    required_files = ['player_ids.csv', 'projections.csv']
+    files_exist = all(os.path.exists(os.path.join(upload_dir, f)) for f in required_files)
+
     if request.method == 'POST':
         try:
-            # config_file = request.FILES.get('config_file')
             player_ids_file = request.FILES.get('player_ids_file')
             projections_file = request.FILES.get('projections_file')
             
-            # Validate files are present
-            # if not all([config_file, player_ids_file, projections_file]):
             if not all([player_ids_file, projections_file]):
                 return JsonResponse({
                     'success': False, 
@@ -35,7 +43,6 @@ def upload_file(request):
             
             # Save new files
             files = {
-                # 'config.json': config_file,
                 'player_ids.csv': player_ids_file,
                 'projections.csv': projections_file
             }
@@ -46,18 +53,67 @@ def upload_file(request):
                     for chunk in file_obj.chunks():
                         destination.write(chunk)
 
+            # Read both CSVs
             player_ids_path = os.path.join(upload_dir, 'player_ids.csv')
-            player_df = pd.read_csv(player_ids_path)
-
-            # Extract player names and IDs
-            players = player_df[['Name', 'ID']].to_dict('records')
-
-            # Save player data to a JSON file or cache
-            players_json_path = os.path.join(upload_dir, 'players.json')
-            with open(players_json_path, 'w') as f:
-                json.dump(players, f)
+            projections_path = os.path.join(upload_dir, 'projections.csv')
             
-            # Return success JSON response with redirect URL
+            player_df = pd.read_csv(player_ids_path)
+            proj_df = pd.read_csv(projections_path)
+
+            # Convert projections dataframe column names to lowercase
+            proj_df.columns = proj_df.columns.str.lower()
+
+            # Create comprehensive player data
+            players = []
+            for _, row in player_df.iterrows():
+                # Get base position
+                base_position = row['Position'].split('/')[0] if pd.notna(row['Position']) else ''
+                
+                # Handle DST entries
+                if 'DST' in str(row['Position']):
+                    team = row['TeamAbbrev']
+                    position = 'DST'
+                else:
+                    team = row['TeamAbbrev']
+                    position = base_position
+
+                # Find matching projection data
+                proj_row = proj_df[proj_df['name'].str.lower() == row['Name'].lower()].iloc[0] if not proj_df[proj_df['name'].str.lower() == row['Name'].lower()].empty else None
+
+                player = {
+                    'Name': row['Name'],  # Keep uppercase for optimizer compatibility
+                    'ID': row['ID'],      # Keep uppercase for optimizer compatibility
+                    'Position': position,
+                    'Team': team,
+                    'Salary': int(str(row['Salary']).replace(',', '')),
+                    'GameInfo': row['Game Info'],
+                }
+
+                # Add projection data if available
+                if proj_row is not None:
+                    player.update({
+                        'Fpts': float(clean_numeric_value(proj_row.get('fpts', 0))),
+                        'StdDev': float(clean_numeric_value(proj_row.get('stddev', 0))),
+                        'Ceiling': float(clean_numeric_value(proj_row.get('ceiling', 0))),
+                        'Ownership': float(str(clean_numeric_value(proj_row.get('own%', '0'))).replace('%', '')),
+                    })
+                else:
+                    # Default values if no projection data found
+                    player.update({
+                        'Fpts': 0,
+                        'StdDev': 0,
+                        'Ceiling': 0,
+                        'Ownership': 0,
+                    })
+
+                players.append(player)
+
+            # Save comprehensive player data to JSON
+            players_json_path = os.path.join(upload_dir, 'players.json')
+            with open(players_json_path, 'w', encoding='utf-8') as f:
+                json.dump(players, f, indent=4, ensure_ascii=False)
+            
+            # Always return JSON response for POST requests
             return JsonResponse({
                 'success': True,
                 'message': 'Files uploaded successfully',
@@ -71,5 +127,5 @@ def upload_file(request):
                 'error': str(e)
             }, status=500)
 
-    # For GET requests, show the lineups table with upload modal
+    # For GET requests, only show modal if files don't exist
     return render(request, 'lineups_table.html', {'show_upload_modal': True})

@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const uploadForm = document.getElementById("upload-form");
+    const uploadMessages = document.getElementById("upload-messages");
 
     if (uploadForm) {
         uploadForm.addEventListener("submit", async function (e) {
@@ -27,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Hide the modal properly
+                    // Get existing modal instance instead of creating new one
                     const modalElement =
                         document.getElementById("upload-modal");
                     const modal = bootstrap.Modal.getInstance(modalElement);

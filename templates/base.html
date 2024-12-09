@@ -31,12 +31,12 @@
             <div id="navbar-nav" class="collapse navbar-collapse">
                 <ul class="nav nav-tabs ms-3 nav-buttons-container">
                     <li class="nav-item">
-                        <a class="nav-link active" id="optimizer-tab" data-bs-toggle="tab" href="#optimizer-content" role="tab">
+                        <a class="nav-link {% if request.resolver_match.url_name != 'simulator' %}active{% endif %}" id="optimizer-tab" href="{% url 'lineups_table' %}" role="tab">
                             Optimizer
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="simulator-tab" data-bs-toggle="tab" href="#simulator-content" role="tab">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'simulator' %}active{% endif %}" id="simulator-tab" href="{% url 'simulator' %}" role="tab">
                             Simulator
                         </a>
                     </li>
@@ -58,10 +58,10 @@
 
     <!-- Tab Content -->
     <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="optimizer-content" role="tabpanel">
+        <div class="tab-pane fade {% if not active_tab or active_tab == 'optimizer' %}show active{% endif %}" id="optimizer-content" role="tabpanel">
             {% block optimizer_content %}{% endblock %}
         </div>
-        <div class="tab-pane fade" id="simulator-content" role="tabpanel">
+        <div class="tab-pane fade {% if active_tab == 'simulator' %}show active{% endif %}" id="simulator-content" role="tabpanel">
             {% block simulator_content %}{% endblock %}
         </div>
     </div>
@@ -112,6 +112,7 @@
             // Store active tab in sessionStorage when changed
             document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(tab => {
                 tab.addEventListener('shown.bs.tab', function(e) {
+                    console.log('Tab switched to:', e.target.id);
                     sessionStorage.setItem('activeTab', `#${e.target.id}`);
                 });
             });
