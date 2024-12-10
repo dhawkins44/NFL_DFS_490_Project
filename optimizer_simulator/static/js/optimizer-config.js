@@ -99,27 +99,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Function to create tooltip icon HTML
-    function createTooltipIcon(tooltipText) {
-        const escapedText = tooltipText
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
-        return `<i class="bi bi-info-circle-fill tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="${escapedText}"></i>`;
-    }
-
-    // Function to initialize tooltips within a container
-    function initializeTooltips(container) {
-        const tooltipTriggerList = [].slice.call(
-            container.querySelectorAll('[data-bs-toggle="tooltip"]')
-        );
-        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    }
-
-    // Initialize tooltips on the entire document (for static elements)
-    initializeTooltips(document.body);
-
     // Initialize At Least Rules
     function initializeAtLeastRules() {
         document
@@ -138,9 +117,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ruleDiv.innerHTML = `
             <div class="form-label-wrapper d-flex align-items-center">
                 <label class="me-2"></label>
-                ${createTooltipIcon(
-                    "Minimum number of players to select from this group"
-                )}
+                <i class="bi bi-info-circle-fill tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Minimum number of players to select from this group"></i>
             </div>
             <div class="input-group">
                 <span class="input-group-text">At least</span>
@@ -156,7 +133,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         container.appendChild(ruleDiv);
-        initializeTooltips(ruleDiv);
 
         // Populate player options
         const selectElement = ruleDiv.querySelector(
@@ -201,9 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ruleDiv.innerHTML = `
             <div class="form-label-wrapper d-flex align-items-center">
                 <label class="me-2"></label>
-                ${createTooltipIcon(
-                    "Maximum number of players to select from this group"
-                )}
+                <i class="bi bi-info-circle-fill tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Maximum number of players to select from this group"></i>
             </div>
             <div class="input-group">
                 <span class="input-group-text">At most</span>
@@ -219,7 +193,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         container.appendChild(ruleDiv);
-        initializeTooltips(ruleDiv);
 
         // Populate player options
         const selectElement = ruleDiv.querySelector(
@@ -264,7 +237,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ruleDiv.innerHTML = `
             <div class="form-label-wrapper d-flex align-items-center">
                 <label class="me-2"></label>
-                ${createTooltipIcon("Define stacking rules with key positions")}
+                <i class="bi bi-info-circle-fill tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Define stacking rules with key positions"></i>
             </div>
             <div class="d-flex align-items-start gap-4 flex-wrap">
                 <div class="form-group" style="min-width: 120px;">
@@ -326,7 +299,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         container.appendChild(ruleDiv);
-        initializeTooltips(ruleDiv);
 
         // Initialize exclude teams select
         const excludeTeamsSelect = ruleDiv.querySelector(
@@ -375,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ruleDiv.innerHTML = `
             <div class="form-label-wrapper d-flex align-items-center">
                 <label class="me-2"></label>
-                ${createTooltipIcon("Limit positions in certain contexts")}
+                <i class="bi bi-info-circle-fill tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Limit positions in certain contexts"></i>
             </div>
             <div class="d-flex align-items-start gap-4 flex-wrap">
                 <div class="form-group" style="min-width: 200px;">
@@ -435,7 +407,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         container.appendChild(ruleDiv);
-        initializeTooltips(ruleDiv);
 
         // Initialize Select2 on 'Unless Positions'
         const unlessPositionsSelect = ruleDiv.querySelector(
@@ -484,7 +455,7 @@ document.addEventListener("DOMContentLoaded", function () {
         limitDiv.innerHTML = `
             <div class="form-label-wrapper d-flex align-items-center">
                 <label class="me-2"></label>
-                ${createTooltipIcon("Limit players from specific teams")}
+                <i class="bi bi-info-circle-fill tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Limit players from specific teams"></i>
             </div>
             <div class="input-group">
                 <span class="input-group-text">Team</span>
@@ -500,7 +471,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         container.appendChild(limitDiv);
-        initializeTooltips(limitDiv);
 
         // Initialize team select
         const teamSelect = limitDiv.querySelector('select[name="team_name"]');
@@ -543,7 +513,7 @@ document.addEventListener("DOMContentLoaded", function () {
         limitDiv.innerHTML = `
             <div class="form-label-wrapper d-flex align-items-center">
                 <label class="me-2"></label>
-                ${createTooltipIcon("Limit players from specific matchups")}
+                <i class="bi bi-info-circle-fill tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Limit players from specific matchups"></i>
             </div>
             <div class="input-group">
                 <span class="input-group-text">Matchup</span>
@@ -559,7 +529,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         container.appendChild(limitDiv);
-        initializeTooltips(limitDiv);
 
         // Initialize matchup select
         const matchupSelect = limitDiv.querySelector(
@@ -603,7 +572,7 @@ document.addEventListener("DOMContentLoaded", function () {
         atLeastDiv.innerHTML = `
             <div class="form-label-wrapper d-flex align-items-center">
                 <label class="me-2"></label>
-                ${createTooltipIcon("Require minimum players from matchups")}
+                <i class="bi bi-info-circle-fill tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Require minimum players from matchups"></i>
             </div>
             <div class="input-group">
                 <span class="input-group-text">Matchup</span>
@@ -619,7 +588,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         container.appendChild(atLeastDiv);
-        initializeTooltips(atLeastDiv);
 
         // Initialize matchup select
         const matchupSelect = atLeastDiv.querySelector(
@@ -896,10 +864,14 @@ document.addEventListener("DOMContentLoaded", function () {
                             downloadBtn.style.display = "inline-block";
                         }
 
-                        // Show stats button
+                        // Show stats button and add click handler
                         const statsBtn = document.getElementById("view-stats");
                         if (statsBtn) {
                             statsBtn.style.display = "inline-block";
+                            statsBtn.addEventListener("click", function () {
+                                window.location.href =
+                                    "/optimizer_simulator/optimizer_stats/";
+                            });
                         }
 
                         // Initialize lineup display
@@ -921,9 +893,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     toggleConfig(false);
                 });
         });
-
-    // Initialize tooltips on the entire document (again, in case of dynamic content)
-    initializeTooltips(document.body);
 
     // Toggle configuration section
     const configHeader = document.querySelector(".config-header");

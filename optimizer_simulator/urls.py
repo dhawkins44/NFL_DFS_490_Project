@@ -17,7 +17,7 @@ urlpatterns = [
     path('', upload_file, name='upload_file'),
     path('upload/', upload_file, name='upload_file'),
     path('run_optimizer/', run_optimizer_view, name='run_optimizer'),
-    path('download/<path:output_file>/', download_output_view, name='download_output'),
+    path('optimizer/download/<path:output_file>/', download_output_view, name='download_output'),
     path('lineups/', lineups_table_view, name='lineups_table'),
     path('get_players/', get_players, name='get_players'),
     path('optimizer_stats/', optimizer_stats_view, name='optimizer_stats'),
@@ -25,5 +25,5 @@ urlpatterns = [
     path('simulator/', simulator_view, name='simulator'),
     path('run_simulation/', run_simulation, name='run_simulation'),
     path('simulation_stats/', simulation_stats_view, name='simulation_stats'),
-    path('download/<str:filename>/', download_file, name='download_file'),
+    path('simulator/download/<str:filename>/', download_file, name='download_file'),
 ]

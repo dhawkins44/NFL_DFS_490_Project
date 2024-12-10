@@ -11,7 +11,6 @@ import csv
 logger = logging.getLogger(__name__)
 
 def simulator_view(request):
-    logger.debug("Starting simulator_view")
     context = {
         'active_tab': 'simulator',
         'show_upload_modal': False
@@ -31,25 +30,16 @@ def run_simulation(request):
             player_ids_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'player_ids.csv')
             projections_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'projections.csv')
             contest_structure_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'contest_structure.csv')
-
-            # Debug logging
-            logger.debug("Starting data validation...")
             
             # Check player_ids.csv
             with open(player_ids_path, 'r') as f:
                 player_ids_data = list(csv.DictReader(f))
-                logger.debug(f"Player IDs loaded: {len(player_ids_data)}")
                 positions = set(p['Position'] for p in player_ids_data)
-                logger.debug(f"Positions found: {positions}")
-                logger.debug(f"First few players: {player_ids_data[:2]}")
 
             # Check projections.csv
             with open(projections_path, 'r') as f:
                 proj_data = list(csv.DictReader(f))
                 non_zero_own = sum(1 for p in proj_data if float(p.get('Own%', 0)) > 0)
-                logger.info(f"Loaded {len(proj_data)} players from projections.csv")
-                logger.info(f"Players with non-zero ownership: {non_zero_own}")
-                logger.info(f"First few ownership values: {[p.get('Own%', 0) for p in proj_data[:5]]}")
 
             # Clear existing simulator output files
             simulator_output_dir = os.path.join(settings.MEDIA_ROOT, 'simulator_output')
@@ -113,20 +103,10 @@ def run_simulation(request):
             # Get just the filename from the full path
             filename = os.path.basename(output_path)
 
-            # Clear existing simulator output files
-            simulator_output_dir = os.path.join(settings.MEDIA_ROOT, 'simulator_output')
-            existing_files = glob.glob(os.path.join(simulator_output_dir, 'dk_gpp_sim*'))
-            for f in existing_files:
-                os.remove(f)
-
-            # Clean up existing config
-            if os.path.exists(config_path):
-                os.remove(config_path)
-
             return JsonResponse({
                 'success': True,
                 'message': 'Simulation completed successfully',
-                'download_url': f"/optimizer_simulator/download/{filename}/",
+                'download_url': f"/optimizer_simulator/simulator/download/{filename}/",
             })
             
         except Exception as e:
@@ -161,10 +141,19 @@ def simulation_stats_view(request):
 
 def download_file(request, filename):
     """Handle file downloads"""
-    file_path = os.path.join(settings.MEDIA_ROOT, 'media/simulator_output', filename)
+    # Remove the extra 'media' from the path
+    file_path = os.path.join(settings.MEDIA_ROOT, 'simulator_output', filename)
+
     if os.path.exists(file_path):
         with open(file_path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type='text/csv')
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             return response
-    raise Http404
+    else:
+        logger.error(f"File not found at path: {file_path}")
+        try:
+            dir_path = os.path.join(settings.MEDIA_ROOT, 'simulator_output')
+            files = os.listdir(dir_path)
+        except Exception as e:
+            logger.error(f"Error listing directory: {e}")
+        raise Http404(f"File not found: {filename}")

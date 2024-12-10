@@ -2462,10 +2462,9 @@ class NFL_GPP_Simulator:
                             roi_p,
                         )
                     )
-
             return out_path
         
         except Exception as e:
-            logger.error(f"Error in output method: {str(e)}")
+            logger.error(f"Error in simulator output method: {str(e)}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             raise

@@ -18,7 +18,7 @@ function createTeamStackingChart(
 
     // Set the height based on container
     const containerHeight = isModal ? container.clientHeight : 500;
-    const legendHeight = isModal ? 120 : 100;
+    const legendHeight = isModal ? 180 : 140;
     const availableHeight = containerHeight - legendHeight;
     const width = container.clientWidth - margin.left - margin.right;
     const height = availableHeight - margin.top - margin.bottom;
@@ -63,13 +63,15 @@ function createTeamStackingChart(
 
     // Calculate legend columns based on available width
     const maxLegendWidth = width - margin.left - margin.right;
-    const itemWidth = isModal ? 200 : 150;
+    const itemWidth = isModal ? 240 : 120;
     const legendColumns = Math.min(
         Math.ceil(stackKeys.length / legendItemsPerColumn),
         Math.floor(maxLegendWidth / itemWidth)
     );
 
-    const legendColumnWidth = maxLegendWidth / legendColumns;
+    // Add padding between columns
+    const columnPadding = isModal ? 40 : 10;
+    const legendColumnWidth = maxLegendWidth / legendColumns + columnPadding;
 
     // Create SVG
     const svg = d3
@@ -224,16 +226,6 @@ function createTeamStackingChart(
         .style("text-anchor", "middle")
         .style("font-size", isModal ? "18px" : "12px")
         .style("font-weight", isModal ? "600" : "500")
-        .text("Number of Lineups");
-
-    // Modify axis label creation
-    svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", -margin.left + (isModal ? 30 : 12))
-        .attr("x", -height / 2)
-        .attr("dy", "1em")
-        .attr("class", "axis-label")
-        .style("text-anchor", "middle")
         .text("Number of Lineups");
 
     // Update font sizes based on context
