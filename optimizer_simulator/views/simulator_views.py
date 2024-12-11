@@ -2,11 +2,13 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.shortcuts import render
 from django.conf import settings
 from optimizer_simulator.utils.simulator import NFL_GPP_Simulator
+from optimizer_simulator.utils.numpy_encoder import NumpyEncoder
 import json
 import os
 import logging
 import glob
 import csv
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -98,16 +100,19 @@ def run_simulation(request):
             simulator.run_tournament_simulation()
             
             # Generate output
-            output_path = simulator.output()
+            lineups_output_path, exposures_output_path = simulator.output()
             
             # Get just the filename from the full path
-            filename = os.path.basename(output_path)
+            exposures_filename = os.path.basename(exposures_output_path)
+            lineups_filename = os.path.basename(lineups_output_path)
 
             return JsonResponse({
                 'success': True,
                 'message': 'Simulation completed successfully',
-                'download_url': f"/optimizer_simulator/simulator/download/{filename}/",
-            })
+                'lineups': simulator.field_lineups,
+                'exposures_filename': exposures_filename,
+                'lineups_filename': lineups_filename,
+            }, encoder=NumpyEncoder)
             
         except Exception as e:
             logger.error(f"Error running simulation: {str(e)}")
@@ -140,20 +145,22 @@ def simulation_stats_view(request):
         return render(request, 'error.html', {'message': str(e)})
 
 def download_file(request, filename):
-    """Handle file downloads"""
-    # Remove the extra 'media' from the path
-    file_path = os.path.join(settings.MEDIA_ROOT, 'simulator_output', filename)
+    try:
+        # Check if the filename is valid
+        if not re.match(r'^[\w\-\.]+$', filename):
+            raise Http404("Invalid filename")
 
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type='text/csv')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        file_path = os.path.join(settings.MEDIA_ROOT, 'simulator_output', filename)
+        
+        if not os.path.exists(file_path):
+            raise Http404("File not found")
+
+        # Read the file and send it as a response
+        with open(file_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename={filename}'
             return response
-    else:
-        logger.error(f"File not found at path: {file_path}")
-        try:
-            dir_path = os.path.join(settings.MEDIA_ROOT, 'simulator_output')
-            files = os.listdir(dir_path)
-        except Exception as e:
-            logger.error(f"Error listing directory: {e}")
-        raise Http404(f"File not found: {filename}")
+
+    except Exception as e:
+        logger.error(f"Error downloading file: {str(e)}")
+        return HttpResponse(str(e), status=500)

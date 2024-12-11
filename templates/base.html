@@ -31,12 +31,20 @@
             <div id="navbar-nav" class="collapse navbar-collapse">
                 <ul class="nav nav-tabs ms-3 nav-buttons-container">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name != 'simulator' %}active{% endif %}" id="optimizer-tab" href="{% url 'lineups_table' %}" role="tab">
+                        <a class="nav-link {% if request.resolver_match.url_name != 'simulator' %}active{% endif %}" 
+                           id="optimizer-tab" 
+                           href="#optimizer-content"
+                           data-url="{% url 'optimizer' %}"
+                           role="tab">
                             Optimizer
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'simulator' %}active{% endif %}" id="simulator-tab" href="{% url 'simulator' %}" role="tab">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'simulator' %}active{% endif %}" 
+                           id="simulator-tab" 
+                           href="#simulator-content"
+                           data-url="{% url 'simulator' %}"
+                           role="tab">
                             Simulator
                         </a>
                     </li>
@@ -77,17 +85,17 @@
         <p>&copy; {% now 'Y' %} Optimum. All rights reserved.</p>
     </footer>
 
-    <!-- Core JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <!-- Include jQuery (for Select2) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Core JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <!-- Site-wide functionality -->
-    <script src="{% static 'js/upload.js' %}"></script>
+    <script src="{% static 'js/upload.js' %}"></script>  
     
     <!-- Load scripts only where needed -->
     {% block scripts %}{% endblock %}
@@ -102,18 +110,18 @@
             uploadModal.show();
             {% endif %}
 
-            // Persist active tab across page loads
-            const activeTab = sessionStorage.getItem('activeTab');
-            if (activeTab) {
-                const tab = new bootstrap.Tab(document.querySelector(activeTab));
-                tab.show();
-            }
-
-            // Store active tab in sessionStorage when changed
-            document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(tab => {
-                tab.addEventListener('shown.bs.tab', function(e) {
-                    console.log('Tab switched to:', e.target.id);
-                    sessionStorage.setItem('activeTab', `#${e.target.id}`);
+            // Modified tab handling
+            const tabLinks = document.querySelectorAll('.nav-link');
+            tabLinks.forEach(tabLink => {
+                tabLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Get the actual URL for navigation
+                    const url = this.getAttribute('data-url');
+                    // Only navigate if we have a valid URL
+                    if (url) {
+                        window.location.href = url;
+                    }
                 });
             });
         });

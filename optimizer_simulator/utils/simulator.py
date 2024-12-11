@@ -2381,8 +2381,8 @@ class NFL_GPP_Simulator:
             )
             out_dir = os.path.join(settings.MEDIA_ROOT, "simulator_output")
             os.makedirs(out_dir, exist_ok=True)
-            out_path = os.path.join(out_dir, filename_out)
-            with open(out_path, "w") as f:
+            lineups_out_path = os.path.join(out_dir, filename_out)
+            with open(lineups_out_path, "w") as f:
                 if self.site == "dk":
                     if self.use_contest_data:
                         f.write(
@@ -2411,8 +2411,8 @@ class NFL_GPP_Simulator:
             )
             out_dir = os.path.join(settings.MEDIA_ROOT, "simulator_output")
             os.makedirs(out_dir, exist_ok=True)
-            out_path = os.path.join(out_dir, filename_out)
-            with open(out_path, "w") as f:
+            exp_out_path = os.path.join(out_dir, filename_out)
+            with open(exp_out_path, "w") as f:
                 f.write(
                     "Player,Position,Team,Win%,Top1%,Sim. Own%,Proj. Own%,Avg. Return\n"
                 )
@@ -2462,7 +2462,7 @@ class NFL_GPP_Simulator:
                             roi_p,
                         )
                     )
-            return out_path
+            return lineups_out_path, exp_out_path
         
         except Exception as e:
             logger.error(f"Error in simulator output method: {str(e)}")

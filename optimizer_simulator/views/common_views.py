@@ -117,7 +117,7 @@ def upload_file(request):
             return JsonResponse({
                 'success': True,
                 'message': 'Files uploaded successfully',
-                'redirect_url': '/optimizer_simulator/lineups/'
+                'redirect_url': '/optimizer_simulator/optimizer/'
             })
             
         except Exception as e:
@@ -128,4 +128,4 @@ def upload_file(request):
             }, status=500)
 
     # For GET requests, only show modal if files don't exist
-    return render(request, 'lineups_table.html', {'show_upload_modal': True})
+    return render(request, 'optimizer.html', {'show_upload_modal': True})

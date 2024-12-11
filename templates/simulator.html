@@ -3,72 +3,11 @@
 {% block simulator_content %}
 
 <div class="container mt-4">
-    <!-- Configuration Section -->
     {% include 'simulator_config.html' %}
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100" style="display: none;">
-        <div class="position-absolute top-50 start-50 translate-middle text-center">
-            <div class="spinner-border text-primary mb-2" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <div>Running simulation...</div>
-        </div>
-    </div>
-
-    <!-- Simulation Results -->
-    <div id="simulation-results" style="display: none;" class="mt-4">
-        <h3>Simulation Results</h3>
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Lineup</th>
-                        <th class="text-end">Win %</th>
-                        <th class="text-end">ROI %</th>
-                        <th class="text-end">Top 10%</th>
-                        <th class="text-end">Cash %</th>
-                        <th class="text-end">Avg Points</th>
-                    </tr>
-                </thead>
-                <tbody id="results-body">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Lineup Navigation and Actions -->
-    <div class="d-flex justify-content-between align-items-center my-3">
-        <!-- Navigation Buttons -->
-        <div>
-            <button class="btn btn-navigation" id="prev-lineup" disabled>
-                <i class="fas fa-chevron-left"></i> Previous
-            </button>
-            <button class="btn btn-navigation" id="next-lineup">
-                Next <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
-
-        <!-- Lineup Counter -->
-        <div>
-            Lineup <span id="current-lineup">1</span> of <span id="total-lineups">0</span>
-        </div>
-
-        <!-- Action Buttons -->
-        <div>
-            <button class="btn btn-secondary" id="reupload-btn">
-                <i class="fas fa-upload"></i> Re-upload Files
-            </button>
-            <a href="#" class="btn btn-secondary" id="download-csv" style="display: none;">
-                <i class="fas fa-download"></i> Download CSV
-            </a>
-        </div>
-    </div>
-
-    <!-- Single Lineup Display -->
     <div id="lineups-section" style="display: none;">
         <div class="table-responsive">
-            <table class="table table-striped">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>Position</th>
@@ -85,8 +24,7 @@
             </table>
         </div>
 
-        <!-- Lineup Summary -->
-        <div class="lineup-summary mt-3">
+        <div class="lineup-summary">
             <div class="row">
                 <div class="col-md-3">
                     <strong>Total Salary:</strong> <span id="total-salary">$0</span>
@@ -100,6 +38,36 @@
                 <div class="col-md-3">
                     <strong>Ownership Sum:</strong> <span id="ownership-sum">0%</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center my-3">
+        <div>
+            <button id="prev-lineup" class="btn btn-navigation">Previous</button>
+            <button id="next-lineup" class="btn btn-navigation">Next</button>
+        </div>
+        <div>
+            Lineup <span id="current-lineup">1</span> of <span id="total-lineups">0</span>
+        </div>
+        <div>
+            <button id="reupload-btn" class="btn btn-primary">Re-upload Files</button>
+            <a href="#" id="download-csv" class="btn btn-secondary" style="display: none;">
+                Download Lineups
+            </a>
+            <a href="#" id="download-exposures" class="btn btn-secondary" style="display: none;">
+                Download Exposures
+            </a>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100" style="display: none;">
+        <div class="position-absolute top-50 start-50 translate-middle text-center">
+            <div class="spinner-border text-primary mb-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div>
+                Running simulation...
             </div>
         </div>
     </div>

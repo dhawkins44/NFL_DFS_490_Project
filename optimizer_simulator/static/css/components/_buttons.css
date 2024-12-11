@@ -156,3 +156,51 @@
 .remove-matchup-at-least-btn i {
     font-size: 1.1rem;
 }
+
+/* Add these button state styles */
+.btn:focus,
+.btn:active,
+.btn:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    background: var(--primary) !important; /* Maintain original background */
+}
+
+.btn-navigation:focus,
+.btn-navigation:active,
+.btn-navigation:focus-visible {
+    background: var(--primary) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.btn-navigation:hover:not(:disabled) {
+    background: var(--primary-light) !important;
+    transform: translateY(-1px);
+}
+
+.btn-secondary:focus,
+.btn-secondary:active,
+.btn-secondary:focus-visible {
+    background: var(--primary) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* For remove buttons */
+.remove-rule-btn:focus,
+.remove-rule-btn:active,
+.remove-rule-btn:focus-visible,
+.remove-team-limit-btn:focus,
+.remove-team-limit-btn:active,
+.remove-team-limit-btn:focus-visible,
+.remove-matchup-limit-btn:focus,
+.remove-matchup-limit-btn:active,
+.remove-matchup-limit-btn:focus-visible,
+.remove-matchup-at-least-btn:focus,
+.remove-matchup-at-least-btn:active,
+.remove-matchup-at-least-btn:focus-visible {
+    background: var(--danger) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}

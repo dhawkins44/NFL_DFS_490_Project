@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return response.json();
         })
         .then((data) => {
-            // Transform the data to match the expected format
             players = data.players.map((player) => ({
                 id: player.ID,
                 name: player.Name,
@@ -28,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 gameInfo: player.GameInfo || "",
             }));
 
-            // Only initialize if we have valid players
             if (players.length > 0) {
                 initializeAll();
             } else {
@@ -47,15 +45,12 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function initializeAll() {
-    // Initialize player selects
     document.querySelectorAll(".player-select").forEach((select) => {
         initializePlayerSelect(select);
     });
 
-    // Initialize correlation rules
     initializeCorrelationRules();
 
-    // Handle configuration toggle
     const configHeader = document.querySelector(".config-header");
     if (configHeader) {
         configHeader.addEventListener("click", function () {
@@ -72,16 +67,12 @@ function initializeAll() {
         });
     }
 
-    // Handle lineup buttons
     const addLineupBtn = document.getElementById("add-lineup");
     if (addLineupBtn) {
         addLineupBtn.addEventListener("click", function () {
-            console.log("Add Lineup button clicked");
             const warnings = validateLineup();
-            console.log("Warnings:", warnings);
             if (warnings.length === 0) {
                 const lineup = gatherLineupData();
-                console.log("Gathered lineup:", lineup);
                 if (lineup.length === 9) {
                     addLineupToTable(lineup);
                 }
@@ -94,12 +85,68 @@ function initializeAll() {
         clearLineupBtn.addEventListener("click", clearLineupBuilder);
     }
 
-    // Handle run simulation button
     document
         .getElementById("run-simulation-btn")
         ?.addEventListener("click", function () {
             const config = gatherSimulationConfig();
             runSimulation(config);
+        });
+}
+
+function runSimulation(config) {
+    const loadingOverlay = document.getElementById("loading-overlay");
+    if (loadingOverlay) {
+        loadingOverlay.style.display = "flex";
+    }
+
+    fetch("/optimizer_simulator/run_simulation/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+                .value,
+        },
+        body: JSON.stringify(config),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                // Check if the function exists before calling it
+                if (typeof window.initializeLineups === "function") {
+                    window.initializeLineups(data.lineups);
+                } else {
+                    console.error("initializeLineups function not found");
+                }
+
+                // Show lineups section
+                document.getElementById("lineups-section").style.display =
+                    "block";
+
+                // Update download buttons for both files
+                const downloadCsv = document.getElementById("download-csv");
+                if (downloadCsv) {
+                    downloadCsv.href = `/optimizer_simulator/simulator/download/${data.lineups_filename}`;
+                    downloadCsv.style.display = "inline-block";
+                }
+
+                const downloadExposures =
+                    document.getElementById("download-exposures");
+                if (downloadExposures) {
+                    downloadExposures.href = `/optimizer_simulator/simulator/download/${data.exposures_filename}`;
+                    downloadExposures.style.display = "inline-block";
+                }
+            } else {
+                alert("Error running simulation: " + data.error);
+            }
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            alert("Error running simulation: " + error);
+        })
+        .finally(() => {
+            if (loadingOverlay) {
+                loadingOverlay.style.display = "none";
+            }
         });
 }
 
@@ -151,67 +198,6 @@ function gatherSimulationConfig() {
         custom_lineups: customLineups,
         correlation_rules: correlationRules,
     };
-}
-
-function runSimulation(config) {
-    const loadingOverlay = document.getElementById("loading-overlay");
-    if (loadingOverlay) {
-        loadingOverlay.style.display = "flex";
-    }
-
-    fetch("/optimizer_simulator/run_simulation/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
-                .value,
-        },
-        body: JSON.stringify(config),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                fetch(data.download_url)
-                    .then((response) => response.text())
-                    .then((csvText) => {
-                        const results = parseSimulationResults(csvText);
-                        const resultsTable =
-                            document.getElementById("simulation-results");
-                        if (resultsTable) {
-                            displayResults(results);
-                            resultsTable.style.display = "block";
-                        }
-
-                        const downloadBtn =
-                            document.getElementById("download-csv");
-                        if (downloadBtn) {
-                            downloadBtn.href = data.download_url;
-                            downloadBtn.style.display = "inline-block";
-                        }
-
-                        const viewStats = document.getElementById("view-stats");
-                        if (viewStats) {
-                            viewStats.style.display = "inline-block";
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error parsing CSV:", error);
-                        alert("Error parsing results: " + error);
-                    });
-            } else {
-                alert("Error running simulation: " + data.error);
-            }
-        })
-        .catch((error) => {
-            console.error("Error:", error);
-            alert("Error running simulation: " + error);
-        })
-        .finally(() => {
-            const loadingOverlay = document.getElementById("loading-overlay");
-            if (loadingOverlay) {
-                loadingOverlay.style.display = "none";
-            }
-        });
 }
 
 // Helper functions for simulation results
@@ -733,143 +719,4 @@ function initializeCorrelationSelect(selectElement) {
     } catch (error) {
         console.error("Error initializing correlation Select2:", error);
     }
-}
-
-function addLineupToTable(lineup) {
-    if (!lineup || lineup.length === 0) {
-        console.log("No valid lineup to add");
-        return;
-    }
-
-    const addedLineupsSection = document.getElementById("added-lineups");
-    if (addedLineupsSection) {
-        addedLineupsSection.style.display = "block";
-    }
-
-    const tbody = document.getElementById("added-lineups-body");
-    if (!tbody) {
-        console.error("Could not find added-lineups-body");
-        return;
-    }
-
-    const row = document.createElement("tr");
-
-    lineup.forEach((player) => {
-        const td = document.createElement("td");
-        td.className = "text-center";
-        if (player && player.name) {
-            td.innerHTML = `
-                <div class="player-cell">
-                    <img src="${getPlayerImageUrl({
-                        name: player.name,
-                        position: player.position,
-                    })}" 
-                         alt="${player.name}" 
-                         class="player-image"
-                         onerror="this.src='${getPlaceholderImageUrl()}'">
-                    <div class="player-name">${player.name
-                        .split("(")[0]
-                        .trim()}</div>
-                </div>
-            `;
-        }
-        row.appendChild(td);
-    });
-
-    // Add remove button
-    const actionTd = document.createElement("td");
-    actionTd.className = "text-center";
-    const removeBtn = document.createElement("button");
-    removeBtn.className = "btn btn-sm btn-danger";
-    removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
-    removeBtn.addEventListener("click", function () {
-        row.remove();
-        if (tbody.children.length === 0) {
-            document.getElementById("added-lineups").style.display = "none";
-        }
-    });
-    actionTd.appendChild(removeBtn);
-    row.appendChild(actionTd);
-
-    tbody.appendChild(row);
-    clearLineupBuilder();
-}
-
-function gatherLineupData() {
-    const lineup = [];
-    document.querySelectorAll(".player-select").forEach((select) => {
-        const selectedOption = select.selectedOptions[0];
-        if (selectedOption) {
-            const playerId = String(selectedOption.value);
-            const player = players.find((p) => String(p.id) === playerId);
-            if (player) {
-                lineup.push({
-                    id: player.id,
-                    name: player.name,
-                    position: player.position,
-                    team: player.team,
-                });
-            }
-        }
-    });
-    return lineup;
-}
-
-// Modify the initializeAll function to include the Add Lineup button handler
-function initializeAll() {
-    console.log("Initializing with players:", players);
-    // Initialize player selects
-    document.querySelectorAll(".player-select").forEach((select) => {
-        initializePlayerSelect(select);
-    });
-
-    // Initialize correlation rules
-    initializeCorrelationRules();
-
-    // Handle configuration toggle
-    const configHeader = document.querySelector(".config-header");
-    if (configHeader) {
-        configHeader.addEventListener("click", function () {
-            const content = document.getElementById("config-content");
-            const toggleBtn = document.getElementById("toggle-config");
-            if (content && toggleBtn) {
-                content.classList.toggle("collapsed");
-                const icon = toggleBtn.querySelector("i");
-                if (icon) {
-                    icon.classList.toggle("bi-chevron-up");
-                    icon.classList.toggle("bi-chevron-down");
-                }
-            }
-        });
-    }
-
-    // Handle lineup buttons
-    const addLineupBtn = document.getElementById("add-lineup");
-    if (addLineupBtn) {
-        addLineupBtn.addEventListener("click", function () {
-            console.log("Add Lineup button clicked");
-            const warnings = validateLineup();
-            console.log("Warnings:", warnings);
-            if (warnings.length === 0) {
-                const lineup = gatherLineupData();
-                console.log("Gathered lineup:", lineup);
-                if (lineup.length === 9) {
-                    addLineupToTable(lineup);
-                }
-            }
-        });
-    }
-
-    const clearLineupBtn = document.getElementById("clear-lineup");
-    if (clearLineupBtn) {
-        clearLineupBtn.addEventListener("click", clearLineupBuilder);
-    }
-
-    // Handle run simulation button
-    document
-        .getElementById("run-simulation-btn")
-        ?.addEventListener("click", function () {
-            const config = gatherSimulationConfig();
-            runSimulation(config);
-        });
 }

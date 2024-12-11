@@ -105,7 +105,7 @@ def download_output_view(request, output_file):
     logger.error(f"File not found: {output_file}")
     raise Http404
 
-def lineups_table_view(request):
+def optimizer_view(request):
     try:
         # Check if required files exist
         upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
@@ -120,10 +120,10 @@ def lineups_table_view(request):
             'show_lineups': False
         }
         
-        return render(request, 'lineups_table.html', context)
+        return render(request, 'optimizer.html', context)
         
     except Exception as e:
-        logger.error(f"Error in lineups view: {str(e)}")
+        logger.error(f"Error in optimizer view: {str(e)}")
         return render(request, 'error.html', {'message': str(e)})
     
 def get_players(request):
