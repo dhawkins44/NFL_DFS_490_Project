@@ -1,5 +1,11 @@
 [phases.setup]
-nixPkgs = ['gcc', 'gfortran', 'python3', 'blas', 'lapack', 'atlas']
+nixPkgs = ['python3', 'blas', 'lapack', 'atlas']
 
 [phases.install]
-cmds = ['python -m pip install --upgrade pip', 'pip install -r requirements.txt'] 
+aptPkgs = ['gcc', 'gfortran', 'python3-dev']
+cmds = [
+    'python -m pip install --upgrade pip',
+    'pip install numpy',
+    'pip install scipy==1.12.0',
+    'pip install -r requirements.txt'
+] 
