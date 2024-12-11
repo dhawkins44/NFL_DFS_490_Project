@@ -1,3 +1,5 @@
+const cloudName = "dcsd2trwx";
+
 function createPlayerExposureChart(
     playerData,
     containerId = "player-exposure-chart"
@@ -138,12 +140,33 @@ function createLeverageScatterPlot(
     // Clear existing content
     d3.select(`#${containerId}`).html("");
 
+    // Debug log to see the raw data
+    console.log("Raw Player Data:", playerData);
+    console.log("Sample player:", Object.entries(playerData)[0]);
+
     // Process data and add image paths
     const scatterData = Object.entries(playerData)
         .map(([name, stats]) => {
+            // Skip the flex_distribution entry
+            if (name === "flex_distribution") return null;
+
             const cleanName = name.trim();
-            const imageFileName = formatNameForImage(cleanName);
-            const imagePath = `/static/player_images/${imageFileName}.png`;
+
+            // Handle DST teams differently
+            const isDST = stats.position === "DST";
+            const playerInfo = isDST
+                ? {
+                      first_name: cleanName.replace(" DST", ""),
+                      last_name: "",
+                      Position: "DST",
+                      Team: stats.team,
+                  }
+                : {
+                      first_name: cleanName.split(" ")[0],
+                      last_name: cleanName.split(" ").slice(1).join(" "),
+                      Position: stats.position,
+                      Team: stats.team,
+                  };
 
             return {
                 name: cleanName,
@@ -152,10 +175,12 @@ function createLeverageScatterPlot(
                 leverage:
                     (stats.exposure_rate || 0) -
                     (parseFloat(stats.ownership) || 0),
-                imagePath: imagePath,
+                position: stats.position,
+                team: stats.team,
+                imagePath: getPlayerImageUrl(playerInfo),
             };
         })
-        .filter((d) => d.exposure > 1 || d.ownership > 1);
+        .filter((d) => d && (d.exposure > 1 || d.ownership > 1)); // Add null check in filter
 
     // Create SVG
     const svg = d3
@@ -247,12 +272,23 @@ function createLeverageScatterPlot(
         .attr("width", imageSize)
         .attr("height", imageSize)
         .attr("clip-path", `url(#circleClip-${containerId})`)
-        .attr("xlink:href", (d) => d.imagePath)
+        .attr("xlink:href", (d) => {
+            const playerData = {
+                first_name: d.name.split(" ")[0],
+                last_name: d.name.split(" ").slice(1).join(" "),
+                Position: d.position,
+                Team: d.team,
+            };
+            return getPlayerImageUrl(playerData);
+        })
         .on("error", function () {
-            d3.select(this).attr(
-                "xlink:href",
-                `/api/placeholder/${imageSize}/${imageSize}`
-            );
+            const img = d3.select(this);
+            if (!img.attr("data-is-retry")) {
+                img.attr("data-is-retry", "true").attr(
+                    "xlink:href",
+                    getPlaceholderImageUrl()
+                );
+            }
         });
 
     // Add interaction

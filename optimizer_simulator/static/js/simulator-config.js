@@ -338,14 +338,14 @@ function formatPlayerOption(option) {
     }
 
     const $option = $(option.element);
-    const imgUrl = $option.data("image");
-    const salary = $option.data("salary");
-    const fpts = $option.data("fpts");
-    const gameInfo = $option.data("gameInfo");
+    const player = {
+        name: option.text.split(" (")[0],
+        position: $option.data("position"),
+    };
 
     return $(`
         <div class="player-option">
-            <img src="${imgUrl}" 
+            <img src="${getPlayerImageUrl(player)}" 
                  alt="${option.text}"
                  class="img-option"
                  onerror="this.src='${getPlaceholderImageUrl()}'">
@@ -353,12 +353,12 @@ function formatPlayerOption(option) {
                 <div class="player-name">${option.text}</div>
                 <div class="player-stats">
                     <span class="salary">$${parseInt(
-                        salary
+                        $option.data("salary")
                     ).toLocaleString()}</span>
-                    <span class="projection">${parseFloat(fpts).toFixed(
-                        1
-                    )} FPTS</span>
-                    <span class="game-info">${gameInfo}</span>
+                    <span class="projection">${parseFloat(
+                        $option.data("fpts")
+                    ).toFixed(1)} FPTS</span>
+                    <span class="game-info">${$option.data("gameInfo")}</span>
                 </div>
             </div>
         </div>
@@ -534,10 +534,7 @@ function addLineupToTable(lineup) {
         if (player && player.name) {
             td.innerHTML = `
                 <div class="player-cell">
-                    <img src="${getPlayerImageUrl({
-                        name: player.name,
-                        position: player.position,
-                    })}" 
+                    <img src="${getPlayerImageUrl(player)}" 
                          alt="${player.name}" 
                          class="player-image"
                          onerror="this.src='${getPlaceholderImageUrl()}'">
@@ -567,31 +564,6 @@ function addLineupToTable(lineup) {
 
     tbody.appendChild(row);
     clearLineupBuilder();
-}
-
-function getPlayerImageUrl(player) {
-    // Handle DST differently
-    if (player.position === "DST") {
-        const teamName = player.name.split("(")[0].trim().toLowerCase();
-        return `/static/player_images/${teamName}.png`;
-    }
-
-    // Regular player handling
-    const fullName = player.name.split("(")[0].trim().toLowerCase();
-    const nameParts = fullName.split(" ");
-    const firstName = nameParts[0].replace(/[\.\']/g, "");
-    const lastName = nameParts.length > 1 ? nameParts[1] : "";
-    const cleanLastName =
-        lastName
-            .split(/\s|\.|\'/)
-            .shift()
-            .replace(/[\.\']/g, "") || "";
-
-    return `/static/player_images/${firstName}_${cleanLastName}.png`;
-}
-
-function getPlaceholderImageUrl() {
-    return "/static/player_images/player_placeholder.png";
 }
 
 // Move correlation rules functions outside initializeAll

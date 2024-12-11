@@ -117,7 +117,11 @@ def optimizer_view(request):
         
         context = {
             'show_upload_modal': not files_exist,  # Only show modal if files don't exist
-            'show_lineups': False
+            'show_lineups': False,
+            'cloudinary_config': {
+                'cloud_name': settings.CLOUDINARY_STORAGE['CLOUD_NAME'],
+                'api_key': settings.CLOUDINARY_STORAGE['API_KEY'],
+            }
         }
         
         return render(request, 'optimizer.html', context)

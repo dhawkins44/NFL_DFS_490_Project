@@ -156,3 +156,4 @@ media/
 optimizer_simulator/static/player_images/
 
 /share
+/staticfiles/

@@ -16,11 +16,7 @@ function renderLineup(index) {
     tableBody.innerHTML = "";
 
     lineup.players.forEach((player) => {
-        const playerImageUrl = player.first_name
-            ? `/static/player_images/${player.first_name}${
-                  player.last_name ? "_" + player.last_name : ""
-              }.png`
-            : "/api/placeholder/40/40";
+        const playerImageUrl = getPlayerImageUrl(player);
 
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -30,7 +26,7 @@ function renderLineup(index) {
                     <img src="${playerImageUrl}" 
                          alt="${player.Name}" 
                          class="player-image"
-                         onerror="this.src='/api/placeholder/40/40'">
+                         onerror="this.src='${getPlaceholderImageUrl()}'">
                     <span>${player.Name}</span>
                 </div>
             </td>
@@ -53,14 +49,47 @@ function renderLineup(index) {
         lineup.ownership_sum.toFixed(1) + "%";
 }
 
+function formatPlayerImage(name) {
+    if (!name) {
+        return "player_placeholder";
+    }
+
+    // Handle DST differently
+    if (name.includes("DST")) {
+        const teamName = name.split("(")[0].trim().toLowerCase();
+        return teamName;
+    }
+
+    // Regular player handling
+    const fullName = name.split("(")[0].trim().toLowerCase();
+
+    // Split into parts and take only first two parts
+    const nameParts = fullName.split(" ");
+    const firstName = nameParts[0].replace(/[\.\']/g, ""); // Remove periods and apostrophes
+    const lastName = nameParts.length > 1 ? nameParts[1] : "";
+
+    // Remove any Jr, III, etc. from lastName and remove periods and apostrophes
+    const cleanLastName =
+        lastName
+            .split(/\s|\.|\'/)
+            .shift()
+            .replace(/[\.\']/g, "") || "";
+
+    return `${firstName}_${cleanLastName}`;
+}
+
 window.initializeLineups = function (lineups) {
+    // Add a guard clause at the start
+    if (!lineups || !Array.isArray(lineups) || lineups.length === 0) {
+        console.log("No lineup data to initialize");
+        return;
+    }
+
     lineupData = lineups;
     currentLineupIndex = 0;
     document.getElementById("total-lineups").textContent = lineups.length;
     document.getElementById("lineups-section").style.display = "block";
-    if (lineups.length > 0) {
-        renderLineup(0);
-    }
+    renderLineup(0);
 };
 
 // Set up event listeners when DOM is loaded

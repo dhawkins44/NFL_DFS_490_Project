@@ -15,6 +15,11 @@ function renderChartsForTab(tabId) {
                 break;
 
             case "player-section":
+                console.log(
+                    "Player Stats Data:",
+                    window.statsData.player_stats
+                );
+
                 if (document.getElementById("player-exposure-chart")) {
                     renderPromises.push(
                         createPlayerExposureChart(window.statsData.player_stats)

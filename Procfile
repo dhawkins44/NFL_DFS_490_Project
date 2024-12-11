@@ -1,0 +1,1 @@
+web: gunicorn dfs_project.wsgi --log-file - 

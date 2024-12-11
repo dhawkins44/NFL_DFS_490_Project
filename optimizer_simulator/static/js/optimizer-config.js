@@ -1,34 +1,3 @@
-// Add these functions at the top level, before the DOMContentLoaded event
-function getPlayerImageUrl(player) {
-    // Handle DST differently
-    if (player.position === "DST") {
-        // Just take the team name before any parentheses and lowercase it
-        const teamName = player.name.split("(")[0].trim().toLowerCase();
-        return `/static/player_images/${teamName}.png`;
-    }
-
-    // Regular player handling
-    const fullName = player.name.split("(")[0].trim().toLowerCase();
-
-    // Split into parts and take only first two parts (first and last name)
-    const nameParts = fullName.split(" ");
-    const firstName = nameParts[0].replace(/[\.\']/g, ""); // Remove periods and apostrophes
-    const lastName = nameParts.length > 1 ? nameParts[1] : "";
-
-    // Remove any Jr, III, etc. from lastName and remove periods and apostrophes
-    const cleanLastName =
-        lastName
-            .split(/\s|\.|\'/)
-            .shift()
-            .replace(/[\.\']/g, "") || "";
-
-    return `/static/player_images/${firstName}_${cleanLastName}.png`;
-}
-
-function getPlaceholderImageUrl() {
-    return "/static/player_images/player_placeholder.png";
-}
-
 document.addEventListener("DOMContentLoaded", function () {
     let players = [];
     let teams = new Set();
@@ -947,8 +916,10 @@ document.addEventListener("DOMContentLoaded", function () {
             option.dataset.fpts = player.Fpts;
             option.dataset.position = player.Position;
             option.dataset.image = getPlayerImageUrl({
-                name: player.Name,
+                first_name: player.Name.split(" ")[0],
+                last_name: player.Name.split(" ").slice(1).join(" "),
                 position: player.Position,
+                Team: player.Team, // for DST handling
             });
             option.dataset.gameInfo = player.GameInfo || "";
             selectElement.appendChild(option);
@@ -1037,5 +1008,56 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
         `);
+    }
+
+    function runSimulation(config) {
+        const loadingOverlay = document.getElementById("loading-overlay");
+        if (loadingOverlay) {
+            loadingOverlay.style.display = "flex";
+        }
+
+        fetch("/optimizer_simulator/run_simulation/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector(
+                    "[name=csrfmiddlewaretoken]"
+                ).value,
+            },
+            body: JSON.stringify(config),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success && data.lineups && data.lineups.length > 0) {
+                    // Only initialize if we have valid lineup data
+                    if (typeof window.initializeLineups === "function") {
+                        window.initializeLineups(data.lineups);
+                    } else {
+                        console.error("initializeLineups function not found");
+                    }
+
+                    // Show lineups section
+                    document.getElementById("lineups-section").style.display =
+                        "block";
+
+                    // Update download buttons
+                    const downloadCsv = document.getElementById("download-csv");
+                    if (downloadCsv) {
+                        downloadCsv.href = `/optimizer_simulator/simulator/download/${data.lineups_filename}`;
+                        downloadCsv.style.display = "inline-block";
+                    }
+                } else {
+                    console.log("No valid lineup data received");
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert("Error running simulation: " + error);
+            })
+            .finally(() => {
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = "none";
+                }
+            });
     }
 });

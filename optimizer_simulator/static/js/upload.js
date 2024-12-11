@@ -11,8 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Disable submit button and show loading state
             submitButton.disabled = true;
-            submitButton.innerHTML =
-                '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+            submitButton.innerHTML = "Uploading...";
 
             try {
                 const response = await fetch(this.action, {
@@ -28,25 +27,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Get existing modal instance instead of creating new one
                     const modalElement =
                         document.getElementById("upload-modal");
                     const modal = bootstrap.Modal.getInstance(modalElement);
 
                     if (modal) {
                         modal.hide();
-                        // Wait for modal hide animation to complete
-                        setTimeout(() => {
-                            // Clean up modal artifacts
-                            document
-                                .querySelectorAll(".modal-backdrop")
-                                .forEach((el) => el.remove());
-                            document.body.classList.remove("modal-open");
-                            document.body.style.paddingRight = "";
-
-                            // Redirect to the lineups page
-                            window.location.href = data.redirect_url;
-                        }, 300);
+                        window.location.href = data.redirect_url;
                     } else {
                         window.location.href = data.redirect_url;
                     }
@@ -61,6 +48,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 submitButton.disabled = false;
                 submitButton.innerHTML = "Upload Files";
             }
+        });
+    }
+
+    // Add skip button handler
+    const skipButton = document.getElementById("skip-upload");
+    if (skipButton) {
+        skipButton.addEventListener("click", function () {
+            window.location.href = "/optimizer_simulator/optimizer/";
         });
     }
 });

@@ -82,17 +82,24 @@ function renderLineup(index) {
     tableBody.innerHTML = "";
 
     lineup.players.forEach((player) => {
+        console.log("Processing player:", player);
+        const playerData = {
+            first_name: player.name.split(" ")[0],
+            last_name: player.name.split(" ").slice(1).join(" "),
+            position: player.position,
+            Team: player.team, // for DST handling
+        };
+
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${player.position}</td>
             <td>
                 <div class="player-cell">
-                    <img src="/static/player_images/${formatPlayerImage(
-                        player.name
-                    )}.png" 
+                    <img src="${getPlayerImageUrl(playerData)}" 
                          alt="${player.name}" 
                          class="player-image"
-                         onerror="this.src='/api/placeholder/40/40'">
+                         onerror="this.src='${getPlaceholderImageUrl()}'"
+                         crossorigin="anonymous">
                     <span>${player.name}</span>
                 </div>
             </td>
@@ -106,20 +113,13 @@ function renderLineup(index) {
     });
 
     // Update summary
-    document.getElementById(
-        "total-salary"
-    ).textContent = `$${lineup.salary.toLocaleString()}`;
+    document.getElementById("total-salary").textContent =
+        "$" + lineup.salary.toLocaleString();
     document.getElementById("total-projected").textContent =
         lineup.projectedPoints.toFixed(1);
     document.getElementById("lineup-stack").textContent = lineup.stack;
-    document.getElementById(
-        "ownership-sum"
-    ).textContent = `${lineup.ownershipSum.toFixed(1)}%`;
-}
-
-function formatPlayerImage(name) {
-    // Convert player name to image filename format
-    return name.toLowerCase().replace(/[.']/g, "").replace(/\s+/g, "_");
+    document.getElementById("ownership-sum").textContent =
+        lineup.ownershipSum.toFixed(1) + "%";
 }
 
 window.initializeLineups = function (data) {

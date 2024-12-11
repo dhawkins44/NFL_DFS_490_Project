@@ -80,6 +80,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+    const cloudName = "{{ cloudinary_config.cloud_name }}";
+</script>
 <script src="{% static 'js/optimizer-lineups.js' %}"></script>
 <script src="{% static 'js/optimizer-config.js' %}"></script>
 {% endblock %}

@@ -60,16 +60,19 @@ def process_lineup_data(lineups_file):
 def get_player_stats(df, projections_df, player_ids_df):
     """Calculate player-level statistics."""
     try:
-        # Create ownership lookup dictionary
+        # Create ownership and position lookup dictionaries
         ownership_lookup = {}
+        position_lookup = {}
         for _, row in projections_df.iterrows():
             try:
                 original_name = row['name']
                 own_pct = row['own%'].replace('%', '') if isinstance(row['own%'], str) else row['own%']
                 own_value = float(own_pct)
+                position = row['position']
 
                 # Store original name
                 ownership_lookup[original_name] = own_value
+                position_lookup[original_name] = position
                 
                 # Handle DST case
                 if 'DST' in original_name:
@@ -78,11 +81,15 @@ def get_player_stats(df, projections_df, player_ids_df):
                     ownership_lookup[team_name.lower()] = own_value
                     ownership_lookup[team_name + ' DST'] = own_value
                     ownership_lookup[team_name.lower() + ' dst'] = own_value
+                    position_lookup[team_name] = 'DST'
+                    position_lookup[team_name.lower()] = 'DST'
                 else:
                     # For players, store multiple variations
                     clean_name = original_name.replace('.', '').replace("'", '')
                     ownership_lookup[clean_name] = own_value
                     ownership_lookup[clean_name.lower()] = own_value
+                    position_lookup[clean_name] = position
+                    position_lookup[clean_name.lower()] = position
                     
                     # Handle hyphenated names
                     if '-' in original_name:
@@ -94,6 +101,8 @@ def get_player_stats(df, projections_df, player_ids_df):
                         no_dots = original_name.replace('.', '')
                         ownership_lookup[no_dots] = own_value
                         ownership_lookup[no_dots.lower()] = own_value
+                        position_lookup[original_name.replace('-', '#')] = position
+                        position_lookup[original_name.replace('-', '#').lower()] = position
                     
             except Exception as e:
                 print(f"Error processing row in projections: {row}")
@@ -127,6 +136,7 @@ def get_player_stats(df, projections_df, player_ids_df):
             'leverage': 0.0,
             'salary_per_point': 0.0,
             'positions_used': set(),
+            'position': '',
             'team': '',
             'total_fpts': 0.0,
             'lineups_used': []
@@ -161,7 +171,7 @@ def get_player_stats(df, projections_df, player_ids_df):
             for pos in positions:
                 name = row[f'{pos}_name']
                 
-                # Try to find ownership using various name formats
+                # Try to find ownership and position using various name formats
                 ownership = (ownership_lookup.get(name) or 
                            ownership_lookup.get(name.lower()) or
                            ownership_lookup.get(name.replace('.', '')) or
@@ -170,12 +180,20 @@ def get_player_stats(df, projections_df, player_ids_df):
                            ownership_lookup.get(name.replace('-', '#').lower()) or
                            0)
                 
+                position = (position_lookup.get(name) or 
+                          position_lookup.get(name.lower()) or 
+                          position_lookup.get(name.replace('.', '')) or 
+                          position_lookup.get(name.replace('-', '#')) or 
+                          position_lookup.get(name.replace('-', '#').lower()) or 
+                          '')
+
                 # Update player stats
                 player_stats[name]['exposures'] += 1
                 player_stats[name]['total_fpts'] += lineup_fpts
                 player_stats[name]['positions_used'].add(pos)
                 player_stats[name]['lineups_used'].append(idx)
                 player_stats[name]['ownership'] = ownership
+                player_stats[name]['position'] = position
                 player_stats[name]['team'] = team_lookup.get(name.lower(), '')
                 
                 if is_top_lineup:
