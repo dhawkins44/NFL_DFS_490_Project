@@ -1,0 +1,3 @@
+[build]
+builder = "nixpacks"
+buildCommand = "python -c 'import os; os.makedirs(\"staticfiles\", exist_ok=True)' && python manage.py collectstatic --noinput --clear" 

@@ -1,0 +1,3 @@
+[build]
+builder = "nixpacks"
+buildCommand = "mkdir -p staticfiles && python manage.py collectstatic --noinput"

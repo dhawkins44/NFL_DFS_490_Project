@@ -110,6 +110,8 @@ def upload_file(request):
 
             # Save comprehensive player data to JSON
             players_json_path = os.path.join(upload_dir, 'players.json')
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(players_json_path), exist_ok=True)
             with open(players_json_path, 'w', encoding='utf-8') as f:
                 json.dump(players, f, indent=4, ensure_ascii=False)
             
