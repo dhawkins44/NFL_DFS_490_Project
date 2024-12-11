@@ -2,7 +2,7 @@
 nixPkgs = ['python3', 'blas', 'lapack', 'atlas']
 
 [phases.install]
-aptPkgs = ['gcc', 'gfortran', 'python3-dev']
+aptPkgs = ['gcc', 'gfortran', 'python3-dev', 'python3-pip']
 cmds = [
     'python -m pip install --upgrade pip',
     'pip install numpy',
