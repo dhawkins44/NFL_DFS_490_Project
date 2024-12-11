@@ -1,0 +1,5 @@
+[phases.setup]
+nixPkgs = ['gcc', 'gfortran', 'python3', 'blas', 'lapack', 'atlas']
+
+[phases.install]
+cmds = ['python -m pip install --upgrade pip', 'pip install -r requirements.txt'] 
