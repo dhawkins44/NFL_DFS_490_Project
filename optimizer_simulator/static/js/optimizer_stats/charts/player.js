@@ -273,13 +273,18 @@ function createLeverageScatterPlot(
         .attr("height", imageSize)
         .attr("clip-path", `url(#circleClip-${containerId})`)
         .attr("xlink:href", (d) => {
-            const playerData = {
+            // Create player object in the correct format
+            const playerInfo = {
+                name: d.name,
+                position: d.position,
+                Position: d.position, // Include both for compatibility
                 first_name: d.name.split(" ")[0],
                 last_name: d.name.split(" ").slice(1).join(" "),
-                Position: d.position,
                 Team: d.team,
             };
-            return getPlayerImageUrl(playerData);
+
+            const imageData = getPlayerImageUrl(playerInfo);
+            return imageData.url; // Use the url property from the returned object
         })
         .on("error", function () {
             const img = d3.select(this);
