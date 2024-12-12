@@ -1,12 +1,12 @@
-// Create this new file for shared configuration
+// Configuration for Cloudinary image hosting service
 const CLOUDINARY_CONFIG = {
-    cloudName: "dcsd2trwx", // Your cloud name
+    cloudName: "dcsd2trwx",
     version: "v1733897743",
     folder: "player_images",
-    defaultTransformation: "f_auto,q_auto", // Add default transformations for optimization
+    defaultTransformation: "f_auto,q_auto",
 };
 
-// Shared image utility functions
+// Utility functions for handling player images
 function getPlayerImageUrl(player) {
     if (
         !player ||
@@ -20,7 +20,7 @@ function getPlayerImageUrl(player) {
         };
     }
 
-    // Handle DST differently
+    // Special handling for defense/special teams
     if (
         player.Position === "DST" ||
         player.name?.includes("DST") ||
@@ -38,7 +38,7 @@ function getPlayerImageUrl(player) {
         };
     }
 
-    // Regular player handling
+    // Extract first and last name from player object
     let firstName, lastName;
     if (player.first_name && player.last_name) {
         firstName = player.first_name;
@@ -54,6 +54,7 @@ function getPlayerImageUrl(player) {
         };
     }
 
+    // Clean up name for URL formatting
     firstName = firstName.toLowerCase().replace(/[.']/g, "");
     lastName = lastName
         .toLowerCase()
@@ -73,9 +74,7 @@ function getPlaceholderImageUrl() {
     return `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${CLOUDINARY_CONFIG.defaultTransformation}/${CLOUDINARY_CONFIG.version}/${CLOUDINARY_CONFIG.folder}/player_placeholder.png.png`;
 }
 
-// Helper function to create/update player images
 function createPlayerImage(player, existingImg = null) {
-    // Add defensive check at the start
     if (!player || typeof player !== "object") {
         console.error("Invalid player object received:", player);
         return createPlaceholderImage(existingImg);
@@ -93,7 +92,6 @@ function createPlayerImage(player, existingImg = null) {
     return img;
 }
 
-// Helper function to create placeholder image
 function createPlaceholderImage(existingImg = null) {
     const img = existingImg || document.createElement("img");
     img.classList.add("player-image");
@@ -101,7 +99,7 @@ function createPlaceholderImage(existingImg = null) {
     return img;
 }
 
-// Export the functions if using modules
+// Make functions available globally
 window.CLOUDINARY_CONFIG = CLOUDINARY_CONFIG;
 window.getPlayerImageUrl = getPlayerImageUrl;
 window.getPlaceholderImageUrl = getPlaceholderImageUrl;

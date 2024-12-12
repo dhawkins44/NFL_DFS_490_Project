@@ -117,9 +117,6 @@
 
 /* View Stats Button */
 #view-stats {
-    background: var(--primary);
-    color: white;
-    border: none;
     transition: all 0.2s ease;
     font-weight: 500;
     padding: 0.625rem 1.25rem;
@@ -127,7 +124,6 @@
 }
 
 #view-stats:hover {
-    background: var(--primary-light);
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -203,4 +199,18 @@
     background: var(--danger) !important;
     outline: none !important;
     box-shadow: none !important;
+}
+
+/* Purple button */
+.btn-purple,
+.btn.btn-purple {
+    color: #fff !important;
+    background-color: var(--bs-purple) !important;
+    border-color: var(--bs-purple) !important;
+}
+
+.btn-purple:hover,
+.btn.btn-purple:hover {
+    background-color: #6528e0 !important;
+    border-color: #6528e0 !important;
 }

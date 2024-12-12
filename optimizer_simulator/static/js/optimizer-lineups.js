@@ -83,7 +83,6 @@ function formatPlayerImage(name) {
 }
 
 window.initializeLineups = function (lineups) {
-    // Add a guard clause at the start
     if (!lineups || !Array.isArray(lineups) || lineups.length === 0) {
         console.log("No lineup data to initialize");
         return;
@@ -91,8 +90,13 @@ window.initializeLineups = function (lineups) {
 
     lineupData = lineups;
     currentLineupIndex = 0;
+
     document.getElementById("total-lineups").textContent = lineups.length;
     document.getElementById("lineups-section").style.display = "block";
+    document.getElementById("download-csv").style.display = "inline-block";
+    document.getElementById("view-stats").style.display = "inline-block";
+    document.getElementById("send-to-simulator").style.display = "inline-block";
+
     renderLineup(0);
 };
 
@@ -106,24 +110,108 @@ document.addEventListener("DOMContentLoaded", function () {
                 renderLineup(currentLineupIndex);
             }
         });
-
-    document
-        .getElementById("next-lineup")
-        ?.addEventListener("click", function () {
-            if (currentLineupIndex < lineupData.length - 1) {
-                currentLineupIndex++;
-                renderLineup(currentLineupIndex);
-            }
-        });
-
-    // Handle optimizer configuration toggle
-    document
-        .getElementById("toggle-config")
-        ?.addEventListener("click", function () {
-            const configContent = document.getElementById("config-content");
-            const icon = this.querySelector("i");
-            configContent.classList.toggle("collapsed");
-            icon.classList.toggle("fa-chevron-up");
-            icon.classList.toggle("fa-chevron-down");
-        });
 });
+
+document.getElementById("next-lineup")?.addEventListener("click", function () {
+    if (currentLineupIndex < lineupData.length - 1) {
+        currentLineupIndex++;
+        renderLineup(currentLineupIndex);
+    }
+});
+
+// Handle optimizer configuration toggle
+document
+    .getElementById("toggle-config")
+    ?.addEventListener("click", function () {
+        const configContent = document.getElementById("config-content");
+        const icon = this.querySelector("i");
+        configContent.classList.toggle("collapsed");
+        icon.classList.toggle("fa-chevron-up");
+        icon.classList.toggle("fa-chevron-down");
+    });
+
+// Add click handler for the send to simulator button
+document
+    .getElementById("send-to-simulator")
+    ?.addEventListener("click", function () {
+        if (!lineupData || lineupData.length === 0) {
+            alert("No lineups to send to simulator!");
+            return;
+        }
+
+        // Convert lineup data to the format simulator expects
+        const simulatorLineups = lineupData.map((lineup) => {
+            // Extract player IDs in the correct order: [QB,RB,RB,WR,WR,WR,TE,FLEX,DST]
+            const orderedLineup = [];
+            const usedPlayers = new Set();
+
+            // First, find QB and DST as they're unique
+            const qb = lineup.players.find((p) => p.Position === "QB");
+            const dst = lineup.players.find((p) => p.Position === "DST");
+            if (qb) {
+                orderedLineup[0] = qb.ID || qb.id;
+                usedPlayers.add(qb.ID || qb.id);
+            }
+            if (dst) {
+                orderedLineup[8] = dst.ID || dst.id;
+                usedPlayers.add(dst.ID || dst.id);
+            }
+
+            // Find RBs (positions 1 and 2)
+            const rbs = lineup.players.filter(
+                (p) => p.Position === "RB" && !usedPlayers.has(p.ID || p.id)
+            );
+            rbs.slice(0, 2).forEach((rb, index) => {
+                orderedLineup[1 + index] = rb.ID || rb.id;
+                usedPlayers.add(rb.ID || rb.id);
+            });
+
+            // Find WRs (positions 3, 4, and 5)
+            const wrs = lineup.players.filter(
+                (p) => p.Position === "WR" && !usedPlayers.has(p.ID || p.id)
+            );
+            wrs.slice(0, 3).forEach((wr, index) => {
+                orderedLineup[3 + index] = wr.ID || wr.id;
+                usedPlayers.add(wr.ID || wr.id);
+            });
+
+            // Find TE (position 6)
+            const te = lineup.players.find(
+                (p) => p.Position === "TE" && !usedPlayers.has(p.ID || p.id)
+            );
+            if (te) {
+                orderedLineup[6] = te.ID || te.id;
+                usedPlayers.add(te.ID || te.id);
+            }
+
+            // Find FLEX (position 7) - can be RB, WR, or TE
+            const remainingFlex = lineup.players.find(
+                (p) =>
+                    (p.Position === "RB" ||
+                        p.Position === "WR" ||
+                        p.Position === "TE") &&
+                    !usedPlayers.has(p.ID || p.id)
+            );
+            if (remainingFlex) {
+                orderedLineup[7] = remainingFlex.ID || remainingFlex.id;
+            }
+
+            return orderedLineup;
+        });
+
+        // Store lineups in session storage
+        sessionStorage.setItem(
+            "optimizer_lineups",
+            JSON.stringify(simulatorLineups)
+        );
+
+        // Also store a flag to indicate we should open the lineups view
+        sessionStorage.setItem("open_lineups_view", "true");
+
+        // Clear any existing simulator data to prevent stale data
+        sessionStorage.removeItem("simulator_data");
+        sessionStorage.removeItem("simulator_current_index");
+
+        // Redirect to simulator page
+        window.location.href = "/optimizer_simulator/simulator/";
+    });

@@ -1,14 +1,100 @@
-// Global players array
+// Global array to store player data fetched from the server
 let players = [];
 
+function toggleConfig(show = null) {
+    const content = document.getElementById("config-content");
+    const toggleBtn = document.getElementById("toggle-config");
+    const icon = toggleBtn?.querySelector("i");
+
+    if (show === null) {
+        // Toggle mode
+        content.classList.toggle("collapsed");
+        icon?.classList.toggle("bi-chevron-up");
+        icon?.classList.toggle("bi-chevron-down");
+    } else if (show) {
+        // Show mode
+        content.classList.remove("collapsed");
+        icon?.classList.add("bi-chevron-up");
+        icon?.classList.remove("bi-chevron-down");
+    } else {
+        // Hide mode
+        content.classList.add("collapsed");
+        icon?.classList.remove("bi-chevron-up");
+        icon?.classList.add("bi-chevron-down");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-    // Initialize salary progress bar to 0
+    // Initialize salary progress bar
     const salaryProgress = document.querySelector(".salary-progress");
     if (salaryProgress) {
         salaryProgress.style.width = "0%";
     }
 
-    // Fetch players first, then initialize everything else
+    // Add click handler for config header
+    const configHeader = document.querySelector(".config-header");
+    if (configHeader) {
+        configHeader.addEventListener("click", () => toggleConfig());
+    }
+
+    // Create a function to handle optimizer lineups
+    function handleOptimizerLineups() {
+        const optimizerLineups = sessionStorage.getItem("optimizer_lineups");
+        if (optimizerLineups) {
+            try {
+                const lineups = JSON.parse(optimizerLineups);
+                lineups.forEach((lineup) => {
+                    addCustomLineup(lineup);
+                });
+
+                // Update lineup count after adding all lineups
+                updateLineupCount();
+
+                // Clear the optimizer lineups from storage
+                sessionStorage.removeItem("optimizer_lineups");
+
+                // Handle lineup view opening
+                const shouldOpenLineupsView =
+                    sessionStorage.getItem("open_lineups_view");
+                if (shouldOpenLineupsView === "true") {
+                    // Open the Custom Lineup Builder section
+                    const lineupBuilderCollapse = document.getElementById(
+                        "collapseLineupBuilder"
+                    );
+                    if (lineupBuilderCollapse) {
+                        new bootstrap.Collapse(lineupBuilderCollapse, {
+                            show: true,
+                        });
+                    }
+
+                    // Open the Added Lineups section
+                    const viewLineupsCollapse = document.getElementById(
+                        "collapseViewLineups"
+                    );
+                    if (viewLineupsCollapse) {
+                        setTimeout(() => {
+                            new bootstrap.Collapse(viewLineupsCollapse, {
+                                show: true,
+                            });
+                            const addedLineupsTable =
+                                document.getElementById("added-lineups");
+                            if (addedLineupsTable) {
+                                addedLineupsTable.style.display = "block";
+                            }
+                            viewLineupsCollapse.scrollIntoView({
+                                behavior: "smooth",
+                                block: "center",
+                            });
+                        }, 150);
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading optimizer lineups:", e);
+            }
+        }
+    }
+
+    // Fetch player data first
     fetch("/optimizer_simulator/get_players/")
         .then((response) => {
             if (!response.ok) {
@@ -29,6 +115,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (players.length > 0) {
                 initializeAll();
+                // Only handle optimizer lineups after players are loaded
+                handleOptimizerLineups();
             } else {
                 console.error(
                     "No valid players available to initialize selects"
@@ -45,12 +133,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function initializeAll() {
-    document.querySelectorAll(".player-select").forEach((select) => {
-        initializePlayerSelect(select);
-    });
-
+    // Initialize correlation rules
     initializeCorrelationRules();
 
+    // Setup config panel toggle
     const configHeader = document.querySelector(".config-header");
     if (configHeader) {
         configHeader.addEventListener("click", function () {
@@ -67,24 +153,10 @@ function initializeAll() {
         });
     }
 
-    const addLineupBtn = document.getElementById("add-lineup");
-    if (addLineupBtn) {
-        addLineupBtn.addEventListener("click", function () {
-            const warnings = validateLineup();
-            if (warnings.length === 0) {
-                const lineup = gatherLineupData();
-                if (lineup.length === 9) {
-                    addLineupToTable(lineup);
-                }
-            }
-        });
-    }
+    // Initialize lineup builder
+    initializeLineupBuilder();
 
-    const clearLineupBtn = document.getElementById("clear-lineup");
-    if (clearLineupBtn) {
-        clearLineupBtn.addEventListener("click", clearLineupBuilder);
-    }
-
+    // Setup simulation button
     document
         .getElementById("run-simulation-btn")
         ?.addEventListener("click", function () {
@@ -99,6 +171,9 @@ function runSimulation(config) {
         loadingOverlay.style.display = "flex";
     }
 
+    // Collapse the config panel when running simulation
+    toggleConfig(false);
+
     fetch("/optimizer_simulator/run_simulation/", {
         method: "POST",
         headers: {
@@ -111,18 +186,16 @@ function runSimulation(config) {
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
-                // Check if the function exists before calling it
                 if (typeof window.initializeLineups === "function") {
                     window.initializeLineups(data.lineups);
                 } else {
                     console.error("initializeLineups function not found");
                 }
 
-                // Show lineups section
                 document.getElementById("lineups-section").style.display =
                     "block";
 
-                // Update download buttons for both files
+                // Update download links
                 const downloadCsv = document.getElementById("download-csv");
                 if (downloadCsv) {
                     downloadCsv.href = `/optimizer_simulator/simulator/download/${data.lineups_filename}`;
@@ -137,11 +210,15 @@ function runSimulation(config) {
                 }
             } else {
                 alert("Error running simulation: " + data.error);
+                // Show the configuration section back if there's an error
+                toggleConfig(true);
             }
         })
         .catch((error) => {
             console.error("Error:", error);
             alert("Error running simulation: " + error);
+            // Show the configuration section back if there's an error
+            toggleConfig(true);
         })
         .finally(() => {
             if (loadingOverlay) {
@@ -150,32 +227,22 @@ function runSimulation(config) {
         });
 }
 
+// Gather simulation configuration from form inputs
 function gatherSimulationConfig() {
     const customLineups = [];
+    // Gather lineups from the table
     document.querySelectorAll("#added-lineups-body tr").forEach((row) => {
         const lineup = [];
         row.querySelectorAll("td:not(:last-child)").forEach((td) => {
-            lineup.push(td.textContent);
+            const playerId = td.getAttribute("data-player-id");
+            if (playerId) {
+                lineup.push(parseInt(playerId));
+            }
         });
-        if (lineup.length > 0) {
+
+        // Only add complete lineups with 9 players
+        if (lineup.length === 9) {
             customLineups.push(lineup);
-        }
-    });
-
-    const correlationRules = {};
-    document.querySelectorAll(".correlation-rule").forEach((rule) => {
-        const playerSelect = rule.querySelector(".player-select");
-        const playerName = playerSelect.value
-            ? playerSelect.selectedOptions[0].text.split(" - ")[0]
-            : null;
-
-        if (playerName) {
-            correlationRules[playerName] = {
-                position: rule.querySelector(".position-select").value,
-                correlation: parseFloat(
-                    rule.querySelector(".correlation-value").value
-                ),
-            };
         }
     });
 
@@ -194,13 +261,13 @@ function gatherSimulationConfig() {
             100,
         randomness: parseFloat(document.getElementById("randomness").value),
         use_contest_data: document.getElementById("useContestData").checked,
-        use_lineup_input: document.getElementById("useLineupInput").checked,
+        use_lineup_input: customLineups.length > 0,
         custom_lineups: customLineups,
-        correlation_rules: correlationRules,
+        correlation_rules: gatherCorrelationRules(),
     };
 }
 
-// Helper functions for simulation results
+// Parse CSV results into structured data
 function parseSimulationResults(csvText) {
     const lines = csvText.split("\n");
     const headers = lines[0].split(",");
@@ -220,6 +287,7 @@ function parseSimulationResults(csvText) {
         });
 }
 
+// Display simulation results in the results table
 function displayResults(results) {
     const tbody = document.getElementById("results-body");
     if (!tbody) return;
@@ -254,8 +322,8 @@ function displayResults(results) {
     });
 }
 
+// Initialize player select dropdown with Select2
 function initializePlayerSelect(selectElement) {
-    // Clear any existing selections and data
     $(selectElement).empty().val(null);
 
     selectElement.innerHTML = "";
@@ -290,7 +358,6 @@ function initializePlayerSelect(selectElement) {
     });
 
     try {
-        // Initialize with empty state
         $(selectElement).val([]);
 
         $(selectElement).select2({
@@ -332,6 +399,7 @@ function initializePlayerSelect(selectElement) {
     }
 }
 
+// Format player option for Select2 dropdown
 function formatPlayerOption(option) {
     if (!option.id) {
         return option.text;
@@ -365,12 +433,12 @@ function formatPlayerOption(option) {
     `);
 }
 
+// Update lineup statistics (salary, points, warnings)
 function updateLineupStats() {
     const salaryTotal = calculateSalaryTotal();
     const projectedPoints = calculateProjectedPoints();
     const warnings = validateLineup();
 
-    // Update salary display and progress bar
     const maxSalary = 50000;
     const salaryProgress = document.querySelector(".salary-progress");
     if (salaryProgress) {
@@ -414,6 +482,7 @@ function calculateProjectedPoints() {
     return total;
 }
 
+// Validate lineup for salary cap and duplicate players
 function validateLineup() {
     const warnings = [];
     const salaryTotal = calculateSalaryTotal();
@@ -426,7 +495,6 @@ function validateLineup() {
         );
     }
 
-    // Check for duplicate players
     const selectedPlayers = new Set();
     document.querySelectorAll(".player-select").forEach((select) => {
         const selectedOption = select.selectedOptions[0];
@@ -441,7 +509,6 @@ function validateLineup() {
         }
     });
 
-    // Update warnings display
     const warningsContainer = document.getElementById("lineup-warnings");
     warningsContainer.innerHTML = warnings
         .map(
@@ -450,7 +517,6 @@ function validateLineup() {
         )
         .join("");
 
-    // Update Add Lineup button state
     const addLineupBtn = document.getElementById("add-lineup");
     if (addLineupBtn) {
         addLineupBtn.disabled = warnings.length > 0;
@@ -459,36 +525,27 @@ function validateLineup() {
     return warnings;
 }
 
+// Reset lineup builder to initial state
 function clearLineupBuilder() {
     document.querySelectorAll(".player-select").forEach((select) => {
-        // Clear the underlying select element
         select.value = "";
-
-        // Reset the Select2 instance
         $(select).val(null).trigger("change");
-
-        // Destroy and reinitialize Select2
         $(select).select2("destroy");
         initializePlayerSelect(select);
     });
 
-    // Reset lineup stats
     document.getElementById("salary-total").textContent = "$0";
     document.getElementById("projected-points").textContent = "0";
-
-    // Clear any warnings
     document.getElementById("lineup-warnings").innerHTML = "";
-
-    // Remove over-salary class if it exists
     document.querySelector(".salary-tracker")?.classList.remove("over-salary");
 
-    // Reset salary progress bar
     const salaryProgress = document.querySelector(".salary-progress");
     if (salaryProgress) {
         salaryProgress.style.width = "0%";
     }
 }
 
+// Collect current lineup data
 function gatherLineupData() {
     const lineup = [];
     document.querySelectorAll(".player-select").forEach((select) => {
@@ -509,15 +566,11 @@ function gatherLineupData() {
     return lineup;
 }
 
+// Add lineup to saved lineups table
 function addLineupToTable(lineup) {
     if (!lineup || lineup.length === 0) {
         console.log("No valid lineup to add");
         return;
-    }
-
-    const addedLineupsSection = document.getElementById("added-lineups");
-    if (addedLineupsSection) {
-        addedLineupsSection.style.display = "block";
     }
 
     const tbody = document.getElementById("added-lineups-body");
@@ -530,6 +583,7 @@ function addLineupToTable(lineup) {
 
     lineup.forEach((player) => {
         const td = document.createElement("td");
+        td.setAttribute("data-player-id", player.id);
         td.className = "text-center";
         if (player && player.name) {
             td.innerHTML = `
@@ -547,7 +601,6 @@ function addLineupToTable(lineup) {
         row.appendChild(td);
     });
 
-    // Add remove button
     const actionTd = document.createElement("td");
     actionTd.className = "text-center";
     const removeBtn = document.createElement("button");
@@ -555,22 +608,37 @@ function addLineupToTable(lineup) {
     removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
     removeBtn.addEventListener("click", function () {
         row.remove();
-        if (tbody.children.length === 0) {
-            document.getElementById("added-lineups").style.display = "none";
-        }
+
+        // Ensure count is updated after DOM is modified
+        setTimeout(() => {
+            updateLineupCount();
+
+            // Hide table if no lineups left
+            const tbody = document.getElementById("added-lineups-body");
+            if (tbody && tbody.children.length === 0) {
+                document.getElementById("added-lineups").style.display = "none";
+            }
+        }, 0);
     });
     actionTd.appendChild(removeBtn);
     row.appendChild(actionTd);
 
     tbody.appendChild(row);
+    document.getElementById("added-lineups").style.display = "block";
+
+    // Ensure count is updated after DOM is modified
+    setTimeout(() => {
+        updateLineupCount();
+    }, 0);
+
+    // Clear the lineup builder after successfully adding the lineup
     clearLineupBuilder();
 }
 
-// Move correlation rules functions outside initializeAll
 let correlationRulesInitialized = false;
 
+// Initialize correlation rules functionality
 function initializeCorrelationRules() {
-    // Only initialize once
     if (correlationRulesInitialized) {
         return;
     }
@@ -588,6 +656,7 @@ function initializeCorrelationRules() {
     }
 }
 
+// Add new correlation rule to the list
 function addCorrelationRule() {
     const container = document.getElementById("correlation-rules-list");
     if (!container) {
@@ -604,7 +673,6 @@ function addCorrelationRule() {
         </div>
         <div class="input-group">
             <select class="correlation-player-select" name="correlation_player">
-                <!-- Options will be populated dynamically -->
             </select>
             <select class="form-control position-select">
                 <option value="QB">QB</option>
@@ -628,11 +696,9 @@ function addCorrelationRule() {
 
     container.appendChild(ruleDiv);
 
-    // Initialize the new select2 for player selection
     const selectElement = ruleDiv.querySelector(".correlation-player-select");
     initializeCorrelationSelect(selectElement);
 
-    // Add remove button handler
     const removeBtn = ruleDiv.querySelector(".remove-rule-btn");
     removeBtn.addEventListener("click", function () {
         $(ruleDiv).closest(".correlation-rule").remove();
@@ -640,6 +706,7 @@ function addCorrelationRule() {
     });
 }
 
+// Update correlation rule numbers after removal
 function updateCorrelationRuleLabels() {
     const correlationRules = document.querySelectorAll(
         "#correlation-rules-list .correlation-rule"
@@ -650,12 +717,11 @@ function updateCorrelationRuleLabels() {
     });
 }
 
+// Initialize Select2 for correlation player selection
 function initializeCorrelationSelect(selectElement) {
     try {
-        // Add multiple attribute
         selectElement.setAttribute("multiple", "multiple");
 
-        // Create options with data attributes first
         players.forEach((player) => {
             const option = document.createElement("option");
             option.value = player.id;
@@ -680,9 +746,8 @@ function initializeCorrelationSelect(selectElement) {
                 if (!option.id) return option.text;
 
                 const $option = $(option.element);
-                // Just get the name and team-position part
-                const text = option.text.split(" |")[0]; // Only take the part before any stats
-                return text; // Will show "Player Name (Team - Pos)"
+                const text = option.text.split(" |")[0];
+                return text;
             },
             escapeMarkup: function (markup) {
                 return markup;
@@ -690,5 +755,169 @@ function initializeCorrelationSelect(selectElement) {
         });
     } catch (error) {
         console.error("Error initializing correlation Select2:", error);
+    }
+}
+
+function gatherCorrelationRules() {
+    const rules = [];
+    document.querySelectorAll(".correlation-rule").forEach((ruleDiv) => {
+        const playerSelect = ruleDiv.querySelector(
+            ".correlation-player-select"
+        );
+        const positionSelect = ruleDiv.querySelector(".position-select");
+        const correlationValue = ruleDiv.querySelector(".correlation-value");
+
+        if (playerSelect && positionSelect && correlationValue) {
+            const selectedPlayers = $(playerSelect).select2("data");
+            const position = positionSelect.value;
+            const value = parseFloat(correlationValue.value);
+
+            if (selectedPlayers.length > 0 && !isNaN(value)) {
+                selectedPlayers.forEach((player) => {
+                    rules.push({
+                        player_id: player.id,
+                        player_name: player.text.split(" (")[0],
+                        position: position,
+                        correlation: value,
+                    });
+                });
+            }
+        }
+    });
+    return rules;
+}
+
+function addCustomLineup(lineup) {
+    const tbody = document.getElementById("added-lineups-body");
+    if (!tbody) return;
+
+    console.log("Adding lineup:", lineup);
+    console.log("Available players:", players);
+
+    const row = document.createElement("tr");
+
+    // Add each player to the row
+    lineup.forEach((playerId) => {
+        // Convert both IDs to strings for comparison and log the lookup
+        const stringId = String(playerId);
+        console.log("Looking for player ID:", stringId);
+
+        const player = players.find((p) => String(p.id) === stringId);
+        console.log("Found player:", player);
+
+        if (player) {
+            const td = document.createElement("td");
+            td.setAttribute("data-player-id", player.id);
+            td.className = "text-center";
+
+            // Split name handling
+            const nameParts = player.name.split(" ");
+            const firstName = nameParts[0];
+            const lastName = nameParts.slice(1).join(" ");
+
+            td.innerHTML = `
+                <div class="player-cell">
+                    <img src="${
+                        getPlayerImageUrl({
+                            first_name: player.name.split(" ")[0],
+                            last_name: player.name
+                                .split(" ")
+                                .slice(1)
+                                .join(" "),
+                            position: player.position,
+                            Team: player.team,
+                        }).url
+                    }" 
+                         alt="${player.name}" 
+                         class="player-image"
+                         onerror="this.src='${getPlaceholderImageUrl()}'">
+                    <div class="player-name">${player.name}</div>
+                </div>
+            `;
+            row.appendChild(td);
+        }
+    });
+
+    // Add remove button
+    const actionTd = document.createElement("td");
+    actionTd.className = "text-center";
+    actionTd.innerHTML =
+        '<button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>';
+    actionTd.querySelector("button").addEventListener("click", function () {
+        row.remove();
+
+        // Ensure count is updated after DOM is modified
+        setTimeout(() => {
+            updateLineupCount();
+
+            // Hide table if no lineups left
+            const tbody = document.getElementById("added-lineups-body");
+            if (tbody && tbody.children.length === 0) {
+                document.getElementById("added-lineups").style.display = "none";
+            }
+        }, 0);
+    });
+    row.appendChild(actionTd);
+
+    tbody.appendChild(row);
+    document.getElementById("added-lineups").style.display = "block";
+
+    // Ensure count is updated after DOM is modified
+    setTimeout(() => {
+        updateLineupCount();
+    }, 0);
+}
+
+// Add this new function
+function initializeLineupBuilder() {
+    // Initialize player select dropdowns
+    document.querySelectorAll(".player-select").forEach((select) => {
+        initializePlayerSelect(select);
+    });
+
+    // Setup lineup management buttons
+    const addLineupBtn = document.getElementById("add-lineup");
+    if (addLineupBtn) {
+        addLineupBtn.addEventListener("click", function () {
+            const warnings = validateLineup();
+            if (warnings.length === 0) {
+                const lineup = gatherLineupData();
+                if (lineup.length === 9) {
+                    addLineupToTable(lineup);
+                }
+            }
+        });
+    }
+
+    const clearLineupBtn = document.getElementById("clear-lineup");
+    if (clearLineupBtn) {
+        clearLineupBtn.addEventListener("click", clearLineupBuilder);
+    }
+}
+
+function updateLineupCount() {
+    const tbody = document.getElementById("added-lineups-body");
+    const count = tbody ? tbody.children.length : 0;
+    console.log("Current lineup count:", count); // Debug log
+
+    // Update all instances of custom-lineup-count class
+    const countElements = document.querySelectorAll(".custom-lineup-count");
+    console.log("Found count elements:", countElements.length); // Debug log
+    countElements.forEach((element) => {
+        element.textContent = count;
+    });
+
+    // Update the badge in the View Lineups accordion header
+    const viewLineupsHeader = document.querySelector(
+        "#viewLineupsHeader .badge"
+    );
+    if (viewLineupsHeader) {
+        viewLineupsHeader.textContent = count;
+    }
+
+    // Update any other instances of the count
+    const customLineupCount = document.getElementById("custom-lineup-count");
+    if (customLineupCount) {
+        customLineupCount.textContent = count;
     }
 }

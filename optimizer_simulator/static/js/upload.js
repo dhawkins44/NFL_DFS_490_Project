@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const formData = new FormData(this);
             const submitButton = this.querySelector('button[type="submit"]');
 
-            // Disable submit button and show loading state
+            // Disable form submission while uploading
             submitButton.disabled = true;
             submitButton.innerHTML = "Uploading...";
 
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Trigger preloading of images
+                    // Parse player CSV and preload player images if function exists
                     if (window.preloadAllPlayerImages) {
                         fetch("/media/uploads/player_ids.csv")
                             .then((response) => response.text())
@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             });
                     }
 
+                    // Close modal if it exists and redirect
                     const modalElement =
                         document.getElementById("upload-modal");
                     const modal = bootstrap.Modal.getInstance(modalElement);
@@ -62,14 +63,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.error("Upload error:", error);
                 alert("Error uploading files: " + error.message);
             } finally {
-                // Reset button state
+                // Reset button to original state
                 submitButton.disabled = false;
                 submitButton.innerHTML = "Upload Files";
             }
         });
     }
 
-    // Add skip button handler
+    // Handle skip button to bypass file upload
     const skipButton = document.getElementById("skip-upload");
     if (skipButton) {
         skipButton.addEventListener("click", function () {

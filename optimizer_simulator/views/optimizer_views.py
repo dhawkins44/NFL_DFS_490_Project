@@ -15,60 +15,36 @@ import json
 logger = logging.getLogger(__name__)
 
 def run_optimizer_view(request):
+    """Handles POST requests to run NFL lineup optimizer"""
     if request.method == 'POST':
         try:
-            # Get configuration from request
             config = json.loads(request.body.decode('utf-8'))
             
-            # Log the player data
+            # Load and validate player data
             players_file = os.path.join(settings.MEDIA_ROOT, 'uploads', 'players.json')
             with open(players_file, 'r') as f:
                 players = json.load(f)
-                logger.info(f"Number of players loaded: {len(players)}")
-                logger.info(f"Sample players:")
                 for pos in ['QB', 'RB', 'WR', 'TE', 'DST']:
                     sample = next((p for p in players if p['Position'] == pos), None)
-                    if sample:
-                        logger.info(f"{pos} sample: {sample}")
-                
-                # Log salary distribution
-                salaries = [p['Salary'] for p in players]
-                logger.info(f"Salary range: {min(salaries)} - {max(salaries)}")
-                logger.info(f"Average salary: {sum(salaries)/len(salaries)}")
-                
-                # Log projections
-                fpts = [p['Fpts'] for p in players]
-                logger.info(f"Projection range: {min(fpts)} - {max(fpts)}")
-                logger.info(f"Average projection: {sum(fpts)/len(fpts)}")
             
             num_lineups = config.get('num_lineups', 10)
             num_uniques = config.get('num_uniques', 1)
             
-            logger.info(f"Starting optimization with {num_lineups} lineups and {num_uniques} uniques")
-            
-            # Define paths
+            # Set up file paths
             config_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'config.json')
             player_ids_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'player_ids.csv')
             projections_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'projections.csv')
 
-            # Log file paths
-            logger.info(f"Using config path: {config_path}")
-            logger.info(f"Using player IDs path: {player_ids_path}")
-            logger.info(f"Using projections path: {projections_path}")
-
-            # Delete existing optimizer output files
+            # Clean up old files
             optimizer_output_dir = os.path.join(settings.MEDIA_ROOT, 'optimizer_output')
             existing_files = glob.glob(os.path.join(optimizer_output_dir, 'dk_optimal_lineups*'))
             for f in existing_files:
                 os.remove(f)
-                logger.info(f"Deleted existing file: {f}")
 
-            # Delete existing config.json file
             if os.path.exists(config_path):
                 os.remove(config_path)
-                logger.info("Deleted existing config.json")
 
-            # Build the configuration dictionary
+            # Build optimizer config
             optimizer_config = {
                 "projection_path": projections_path,
                 "player_path": player_ids_path,
@@ -94,19 +70,16 @@ def run_optimizer_view(request):
                 "team_limits": config.get('team_limits', {}),
             }
 
-            # Write the config.json file
             with open(config_path, 'w') as f:
                 json.dump(optimizer_config, f, indent=4)
-            logger.info("Wrote new config.json")
             
-            # Verify input files exist
+            # Verify required files exist
             required_files = [config_path, player_ids_path, projections_path]
             for file_path in required_files:
                 if not os.path.exists(file_path):
                     raise FileNotFoundError(f"Required file not found: {file_path}")
-                logger.info(f"Verified file exists: {file_path}")
             
-            # Run optimizer
+            # Run optimization
             optimizer = NFL_Optimizer(
                 site='dk',
                 num_lineups=num_lineups,
@@ -114,15 +87,12 @@ def run_optimizer_view(request):
                 config_path=config_path,
             )
             
-            logger.info("Starting optimization...")
             optimizer.optimize()
-            logger.info("Optimization complete")
             
             output_file, lineup_data = optimizer.output()
             if not lineup_data:
                 raise ValueError("No lineup data generated")
                 
-            logger.info(f"Generated output file: {output_file}")
             download_url = f"/optimizer_simulator/download/{output_file}/"
             
             return JsonResponse({
@@ -138,7 +108,7 @@ def run_optimizer_view(request):
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 def download_output_view(request, output_file):
-    # Security: prevent directory traversal
+    """Downloads optimizer output files with security checks"""
     if '..' in output_file or output_file.startswith('/'):
         logger.warning(f"Attempted directory traversal attack with file: {output_file}")
         raise Http404
@@ -153,8 +123,8 @@ def download_output_view(request, output_file):
     raise Http404
 
 def optimizer_view(request):
+    """Main view for optimizer page"""
     try:
-        # Check if required files exist
         upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
         required_files = ['player_ids.csv', 'projections.csv']
         files_exist = all(os.path.exists(os.path.join(upload_dir, f)) for f in required_files)
@@ -163,7 +133,7 @@ def optimizer_view(request):
         force_upload = request.GET.get('force_upload', False)
         
         context = {
-            'show_upload_modal': not files_exist,  # Only show modal if files don't exist
+            'show_upload_modal': not files_exist,
             'show_lineups': False,
             'cloudinary_config': {
                 'cloud_name': settings.CLOUDINARY_STORAGE['CLOUD_NAME'],
@@ -178,6 +148,7 @@ def optimizer_view(request):
         return render(request, 'error.html', {'message': str(e)})
     
 def get_players(request):
+    """Returns JSON of available players"""
     try:
         upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
         players_json_path = os.path.join(upload_dir, 'players.json')
@@ -189,6 +160,7 @@ def get_players(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 def optimizer_stats_view(request):
+    """Displays statistics from the most recent optimization"""
     try:
         optimizer_output_dir = os.path.join(settings.MEDIA_ROOT, 'optimizer_output')
         files = [f for f in os.listdir(optimizer_output_dir) 
@@ -203,10 +175,7 @@ def optimizer_stats_view(request):
                          key=lambda x: os.path.getctime(os.path.join(optimizer_output_dir, x)))
         latest_file_path = os.path.join(optimizer_output_dir, latest_file)
         
-        # Process the data
         stats = process_lineup_data(latest_file_path)
-        
-        # Convert to JSON using custom encoder
         stats_json = json.dumps(stats, cls=NumpyEncoder, default=str)
         
         return render(request, 'optimizer_stats.html', {
@@ -217,8 +186,8 @@ def optimizer_stats_view(request):
         logger.error(f"Error in optimizer_stats_view: {str(e)}")
         return render(request, 'error.html', {'message': str(e)})
 
-
 def get_optimizer_stats_data(request):
+    """Returns JSON of optimizer statistics data"""
     try:
         optimizer_output_dir = os.path.join(settings.MEDIA_ROOT, 'optimizer_output')
         files = [f for f in os.listdir(optimizer_output_dir) 
@@ -233,10 +202,9 @@ def get_optimizer_stats_data(request):
                          key=lambda x: os.path.getctime(os.path.join(optimizer_output_dir, x)))
         latest_file_path = os.path.join(optimizer_output_dir, latest_file)
         
-        # Process the data
         stats = process_lineup_data(latest_file_path)
         
-        # Convert any sets to lists and handle NumPy types
+        # Convert sets, NumPy types etc to JSON serializable formats
         def convert_types(obj):
             if isinstance(obj, set):
                 return list(obj)

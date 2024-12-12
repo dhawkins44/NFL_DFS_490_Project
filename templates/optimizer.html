@@ -24,15 +24,18 @@
         </div>
 
         <!-- Action Buttons -->
-        <div>
+        <div class="d-flex align-items-center gap-2">
             <button class="btn btn-secondary" id="reupload-btn">
                 <i class="fas fa-upload"></i> Re-upload Files
             </button>
             <a href="#" class="btn btn-secondary" id="download-csv" style="display: none;">
                 <i class="fas fa-download"></i> Download CSV
             </a>
-            <button class="btn btn-secondary" id="view-stats" style="display: none;">
+            <button id="view-stats" class="btn btn-purple" style="display: none;">
                 <i class="fas fa-chart-bar"></i> View Stats
+            </button>
+            <button id="send-to-simulator" class="btn btn-success" style="display: none;">
+                <i class="bi bi-arrow-right-circle"></i> Send to Simulator
             </button>
         </div>
     </div>

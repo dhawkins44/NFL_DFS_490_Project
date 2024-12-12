@@ -104,10 +104,9 @@
             </div>
         </div>
 
-
         <!-- Advanced Settings Accordion -->
         <div id="advancedSettings" class="accordion mt-4">
-            <!-- Custom Lineup Builder Accordion Item -->
+            <!-- Custom Lineup Builder Section -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingLineupBuilder">
                     <button class="accordion-button collapsed" type="button" 
@@ -115,189 +114,221 @@
                             data-bs-target="#collapseLineupBuilder">
                         Custom Lineup Builder
                         <i class="bi bi-info-circle-fill tooltip-icon ms-2" data-bs-toggle="tooltip" data-bs-placement="top" 
-                           title="Build your own custom lineups to test in the simulation. Add multiple lineups to compare their performance."></i>
+                           title="Build and manage your custom lineups to test in the simulation"></i>
                     </button>
                 </h2>
                 <div id="collapseLineupBuilder" class="accordion-collapse collapse" 
                      aria-labelledby="headingLineupBuilder" 
                      data-bs-parent="#advancedSettings">
-                    <div class="accordion-body">
-                        <!-- Lineup builder content -->
-                        <div class="lineup-slots">
-                            <!-- Lineup stats -->
-                            <div class="lineup-stats mb-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="salary-tracker">
-                                        <div class="d-flex align-items-center">
-                                            <div class="salary-bar">
-                                                <div class="salary-progress"></div>
-                                            </div>
-                                            <div class="salary-text">
-                                                <span id="salary-total">$0</span>
-                                                <span class="text-muted">/ $50,000</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="projected-points">
-                                        <span class="label">Projected Points:</span>
-                                        <span class="value" id="projected-points">0</span>
-                                    </div>
-                                </div>
-                                <div id="lineup-warnings" class="mt-2">
-                                    <!-- Warnings will be inserted here -->
-                                </div>
-                            </div>
-                            <!-- Each position gets its own row -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>QB</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="QB">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- RB1 -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>RB1</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="RB">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- RB2 -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>RB2</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="RB">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- WR1 -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>WR1</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="WR">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- WR2 -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>WR2</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="WR">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- WR3 -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>WR3</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="WR">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- TE -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>TE</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="TE">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- FLEX -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>FLEX</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="FLEX">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- DST -->
-                            <div class="row mb-2">
-                                <div class="col-md-12">
-                                    <div class="form-group lineup-select-group">
-                                        <label>DST</label>
-                                        <div class="input-group">
-                                            <select class="form-control select2 player-select" data-position="DST">
-                                                <!-- Options will be populated dynamically -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-3">
-                                <button type="button" class="btn btn-primary me-2" id="add-lineup">Add Lineup</button>
-                                <button type="button" class="btn btn-secondary" id="clear-lineup">Clear</button>
-                            </div>
-
-                            <!-- Added Lineups Display -->
-                            <div id="added-lineups" class="mt-3" style="display: none;">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 class="mb-0">Added Lineups</h6>
-                                    <button class="btn btn-link p-0" type="button" data-bs-toggle="collapse" data-bs-target="#added-lineups-table">
-                                        <i class="bi bi-chevron-down"></i>
+                    <div class="accordion-body p-0">
+                        <!-- Nested Accordion for Create and View sections -->
+                        <div class="accordion" id="lineupBuilderAccordion">
+                            <!-- Create Lineup Section -->
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header" id="headingCreateLineup">
+                                    <button class="accordion-button collapsed" type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#collapseCreateLineup">
+                                        Create Custom Lineup
+                                        <i class="bi bi-info-circle-fill tooltip-icon ms-2" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                           title="Build a custom lineup by selecting players for each position"></i>
                                     </button>
+                                </h2>
+                                <div id="collapseCreateLineup" class="accordion-collapse collapse" 
+                                     aria-labelledby="headingCreateLineup" 
+                                     data-bs-parent="#lineupBuilderAccordion">
+                                    <div class="accordion-body">
+                                        <!-- Lineup builder content -->
+                                        <div class="lineup-slots">
+                                            <!-- Lineup stats -->
+                                            <div class="lineup-stats mb-3">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="salary-tracker">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="salary-bar">
+                                                                <div class="salary-progress"></div>
+                                                            </div>
+                                                            <div class="salary-text">
+                                                                <span id="salary-total">$0</span>
+                                                                <span class="text-muted">/ $50,000</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="projected-points">
+                                                        <span class="label">Projected Points:</span>
+                                                        <span class="value" id="projected-points">0</span>
+                                                    </div>
+                                                </div>
+                                                <div id="lineup-warnings" class="mt-2">
+                                                    <!-- Warnings will be inserted here -->
+                                                </div>
+                                            </div>
+
+                                            <!-- Position Selection -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>QB</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="QB">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- RB1 -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>RB1</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="RB">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- RB2 -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>RB2</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="RB">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- WR1 -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>WR1</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="WR">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- WR2 -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>WR2</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="WR">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- WR3 -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>WR3</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="WR">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- TE -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>TE</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="TE">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- FLEX -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>FLEX</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="FLEX">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- DST -->
+                                            <div class="row mb-2">
+                                                <div class="col-md-12">
+                                                    <div class="form-group lineup-select-group">
+                                                        <label>DST</label>
+                                                        <div class="input-group">
+                                                            <select class="form-control select2 player-select" data-position="DST">
+                                                                <!-- Options will be populated dynamically -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 mb-3">
+                                                <button type="button" class="btn btn-primary me-2" id="add-lineup">Add Lineup</button>
+                                                <button type="button" class="btn btn-secondary" id="clear-lineup">Clear</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div id="added-lineups-table" class="collapse show">
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
-                                                <tr>
-                                                    <th class="text-center">QB</th>
-                                                    <th class="text-center">RB</th>
-                                                    <th class="text-center">RB</th>
-                                                    <th class="text-center">WR</th>
-                                                    <th class="text-center">WR</th>
-                                                    <th class="text-center">WR</th>
-                                                    <th class="text-center">TE</th>
-                                                    <th class="text-center">FLEX</th>
-                                                    <th class="text-center">DST</th>
-                                                    <th></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="added-lineups-body">
-                                            </tbody>
-                                        </table>
+                            </div>
+
+                            <!-- View Lineups Section -->
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header" id="headingViewLineups">
+                                    <button class="accordion-button collapsed" type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#collapseViewLineups">
+                                        Added Lineups (<span id="custom-lineup-count">0</span>)
+                                        <i class="bi bi-info-circle-fill tooltip-icon ms-2" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                           title="View and manage your saved custom lineups"></i>
+                                    </button>
+                                </h2>
+                                <div id="collapseViewLineups" class="accordion-collapse collapse" 
+                                     aria-labelledby="headingViewLineups" 
+                                     data-bs-parent="#lineupBuilderAccordion">
+                                    <div class="accordion-body p-0">
+                                        <!-- Custom Lineups Section -->
+                                        <div class="card border-0" id="added-lineups" style="display: none;">
+                                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                                <table class="table table-sm mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-center">QB</th>
+                                                            <th class="text-center">RB</th>
+                                                            <th class="text-center">RB</th>
+                                                            <th class="text-center">WR</th>
+                                                            <th class="text-center">WR</th>
+                                                            <th class="text-center">WR</th>
+                                                            <th class="text-center">TE</th>
+                                                            <th class="text-center">FLEX</th>
+                                                            <th class="text-center">DST</th>
+                                                            <th class="text-center">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="added-lineups-body">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

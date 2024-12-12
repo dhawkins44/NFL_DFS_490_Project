@@ -106,12 +106,13 @@
 
 /* Config accordion animation */
 #config-content {
-    transition: all 0.3s ease-out;
+    max-height: 2000px; /* Adjust based on your needs */
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
 }
 
 #config-content.collapsed {
-    display: none;
-    padding: 0;
+    max-height: 0;
 }
 
 /* Make sure header is clickable */
@@ -407,4 +408,72 @@
     font-size: 0.75rem;
     text-align: center;
     max-width: 80px;
+}
+
+/* Nested accordion styling */
+#lineupBuilderAccordion {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+#lineupBuilderAccordion .accordion-item {
+    background-color: #ffffff;
+    margin-bottom: 0.5rem;
+    border-radius: 0.375rem;
+    width: 98%;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+#lineupBuilderAccordion .accordion-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    background-color: #ffffff;
+    border-radius: 0.375rem !important;
+}
+
+#lineupBuilderAccordion .accordion-button:not(.collapsed) {
+    background-color: #f8f9fa;
+    color: var(--bs-primary);
+    font-weight: 500;
+    box-shadow: none;
+}
+
+#lineupBuilderAccordion .accordion-body {
+    background-color: #ffffff;
+    border-bottom-left-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+    padding: 1rem;
+}
+
+/* Remove border from inner accordion items */
+#lineupBuilderAccordion .accordion-item {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Style the parent accordion item differently */
+#collapseLineupBuilder {
+    background-color: #f8f9fa;
+    padding: 0;
+}
+
+#collapseLineupBuilder > .accordion-body {
+    background-color: #f8f9fa;
+    padding: 0;
+}
+
+/* Added Lineups table container */
+#added-lineups {
+    width: 98%;
+    margin: 0.75rem auto 0;
+    background-color: #ffffff;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Table styling within the container */
+#added-lineups .table-responsive {
+    border-radius: 0.375rem;
 }

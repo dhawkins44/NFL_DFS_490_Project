@@ -758,10 +758,13 @@ class NFL_Optimizer:
         # Crunch!
         for i in range(self.num_lineups):
             try:
-                if os.getenv('ON_RAILWAY'):
+                if settings.ON_RAILWAY:
+                    print("RAILWAY_ENVIRONMENT:", os.getenv('RAILWAY_ENVIRONMENT'))
+                    print("Solving on Railway")
                     self.problem.solve(plp.COIN_CMD(path='/root/.nix-profile/bin/cbc', msg=0))
                 else:
                     # Use default CBC solver for local environment
+                    print("Solving on local")
                     self.problem.solve(plp.PULP_CBC_CMD(msg=0))
             except plp.PulpSolverError:
                 print(

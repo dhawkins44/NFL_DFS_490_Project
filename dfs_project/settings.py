@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-ON_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') == 'true'
+ON_RAILWAY = bool(os.getenv('RAILWAY_ENVIRONMENT'))
 
 MEDIA_URL = '/media/'
 if ON_RAILWAY:

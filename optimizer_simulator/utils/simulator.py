@@ -70,15 +70,15 @@ class NFL_GPP_Simulator:
     seen_lineups = {}
     seen_lineups_ix = {}
     position_map = {
-        0: ["DST"],
-        1: ["QB"],
+        0: ["QB"],        # QB first
+        1: ["RB"],        # Then RB
         2: ["RB"],
-        3: ["RB"],
+        3: ["WR"],
         4: ["WR"],
         5: ["WR"],
-        6: ["WR"],
-        7: ["TE"],
-        8: ["RB", "WR", "TE"],
+        6: ["TE"],
+        7: ["RB", "WR", "TE"],  # FLEX
+        8: ["DST"],      # DST last
     }
 
     def __init__(
@@ -461,9 +461,12 @@ class NFL_GPP_Simulator:
         #     print(f"Error while printing variable: {e}")
         # Crunch!
         try:
-            if os.getenv('ON_RAILWAY'):
+            if settings.ON_RAILWAY:
+                print("Solving on Railway")
                 problem.solve(plp.PULP_CBC_CMD(path='/root/.nix-profile/bin/cbc', msg=0))
             else:
+                print("Solving on local")
+                print("RAILWAY_ENVIRONMENT:", os.getenv('RAILWAY_ENVIRONMENT'))
                 problem.solve(plp.PULP_CBC_CMD(msg=0))
         except plp.PulpSolverError:
             print(
@@ -1784,20 +1787,23 @@ class NFL_GPP_Simulator:
 
 
     def sort_lineup_by_start_time(self, lineup):
-        flex_index = 8  # Assuming FLEX is at index 8
-        flex_player = lineup[flex_index]
+        # First, reorder lineup to match desired output order
+        desired_order = [0, 1, 2, 3, 4, 5, 6, 7, 8]  # QB,RB,RB,WR,WR,WR,TE,FLEX,DST
+        ordered_lineup = [lineup[i] for i in desired_order]
+        
+        # Now handle FLEX position swaps while maintaining order
+        flex_index = 7  # FLEX is now at index 7 in our reordered lineup
+        flex_player = ordered_lineup[flex_index]
         flex_player_start_time = self.get_start_time(flex_player)
 
-        # Initialize variables to track the best swap candidate
         latest_start_time = flex_player_start_time
         swap_candidate_index = None
 
-        # Iterate over RB, WR, and TE positions (indices 2 to 7)
-        for i in range(2, 8):
-            current_player = lineup[i]
+        # Only check RB, WR, TE positions (indices 1-6)
+        for i in range(1, 7):
+            current_player = ordered_lineup[i]
             current_player_start_time = self.get_start_time(current_player)
 
-            # Update the latest start time and swap candidate index
             if (current_player_start_time and current_player_start_time > latest_start_time and
                 self.is_valid_for_position(flex_player, i) and
                 self.is_valid_for_position(current_player, flex_index)):
@@ -2250,7 +2256,7 @@ class NFL_GPP_Simulator:
                             x["ROI"] / self.entry_fee / self.num_iterations * 100, 2
                         )
                         roi_round = round(x["ROI"] / x['Count'] / self.num_iterations, 2)
-                        lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},${},{}%,{}%,{}%,{},${},{},{},{},{},{}".format(
+                        lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},${},{}%,{}%,{}%,{},{},{},{},{}".format(
                             lu_names[1].replace("#", "-"),
                             x["Lineup"][1],
                             lu_names[2].replace("#", "-"),
@@ -2285,7 +2291,7 @@ class NFL_GPP_Simulator:
                             simDupes,
                         )
                     else:
-                        lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},{},{}%,{}%,{}%,{},{},{}".format(
+                        lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},{},{}%,{}%,{}%,{},{},{},{},{}".format(
                             lu_names[1].replace("#", "-"),
                             x["Lineup"][1],
                             lu_names[2].replace("#", "-"),
@@ -2323,7 +2329,7 @@ class NFL_GPP_Simulator:
                             x["ROI"] / x['Count'] / self.entry_fee / self.num_iterations * 100, 2
                         )
                         roi_round = round(x["ROI"] / x['Count'] / self.num_iterations, 2)
-                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{}%,{},${},{},{},{},{},{}".format(
+                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{}%,{},${},{},{},{},{},{}".format(
                             x["Lineup"][1],
                             lu_names[1].replace("#", "-"),
                             x["Lineup"][2],
@@ -2358,7 +2364,7 @@ class NFL_GPP_Simulator:
                             simDupes
                         )
                     else:
-                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{},{},{},{},{},{}".format(
+                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{},{},{},{},{},{}".format(
                             x["Lineup"][1],
                             lu_names[1].replace("#", "-"),
                             x["Lineup"][2],
