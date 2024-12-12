@@ -759,7 +759,7 @@ class NFL_Optimizer:
         for i in range(self.num_lineups):
             try:
                 if os.getenv('ON_RAILWAY'):
-                    self.problem.solve(plp.PULP_CBC_CMD(path='/root/.nix-profile/bin/cbc', msg=0))
+                    self.problem.solve(plp.COIN_CMD(path='/root/.nix-profile/bin/cbc', msg=0))
                 else:
                     # Use default CBC solver for local environment
                     self.problem.solve(plp.PULP_CBC_CMD(msg=0))

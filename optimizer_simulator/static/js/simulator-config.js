@@ -284,7 +284,7 @@ function initializePlayerSelect(selectElement) {
         option.dataset.image = getPlayerImageUrl({
             name: player.name,
             position: player.position,
-        });
+        }).url;
         option.dataset.gameInfo = player.gameInfo || "";
         selectElement.appendChild(option);
     });
@@ -345,7 +345,7 @@ function formatPlayerOption(option) {
 
     return $(`
         <div class="player-option">
-            <img src="${getPlayerImageUrl(player)}" 
+            <img src="${getPlayerImageUrl(player).url}" 
                  alt="${option.text}"
                  class="img-option"
                  onerror="this.src='${getPlaceholderImageUrl()}'">
@@ -534,7 +534,7 @@ function addLineupToTable(lineup) {
         if (player && player.name) {
             td.innerHTML = `
                 <div class="player-cell">
-                    <img src="${getPlayerImageUrl(player)}" 
+                    <img src="${getPlayerImageUrl(player).url}" 
                          alt="${player.name}" 
                          class="player-image"
                          onerror="this.src='${getPlaceholderImageUrl()}'">
@@ -666,7 +666,7 @@ function initializeCorrelationSelect(selectElement) {
             option.dataset.image = getPlayerImageUrl({
                 name: player.name,
                 position: player.position,
-            });
+            }).url;
             option.dataset.gameInfo = player.gameInfo || "";
             selectElement.appendChild(option);
         });

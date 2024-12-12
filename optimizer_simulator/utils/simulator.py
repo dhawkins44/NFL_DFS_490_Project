@@ -462,7 +462,7 @@ class NFL_GPP_Simulator:
         # Crunch!
         try:
             if os.getenv('ON_RAILWAY'):
-                self.problem.solve(plp.PULP_CBC_CMD(path='/root/.nix-profile/bin/cbc', msg=0))
+                problem.solve(plp.PULP_CBC_CMD(path='/root/.nix-profile/bin/cbc', msg=0))
             else:
                 problem.solve(plp.PULP_CBC_CMD(msg=0))
         except plp.PulpSolverError:
