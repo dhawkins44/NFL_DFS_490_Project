@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+import tempfile
 
 load_dotenv()
 
@@ -50,8 +51,13 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
+ON_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') == 'true'
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+if ON_RAILWAY:
+    MEDIA_ROOT = '/tmp/app_media' 
+else:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -103,49 +109,90 @@ DATABASES = {
     }
 }
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+# Modify the LOGGING configuration
+if ON_RAILWAY:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+                'level': 'DEBUG',
+            },
         },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+        'root': {
+            'handlers': ['console'],
             'level': 'DEBUG',
         },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-            'formatter': 'verbose',
-            'level': 'DEBUG',
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'optimizer_simulator': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
         },
-    },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'DEBUG',
-    },
-    'loggers': {
-        'django': {
+    }
+else:
+    LOGGING = {
+        # Your existing logging configuration for local development
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+                'level': 'DEBUG',
+            },
+            'file': {
+                'class': 'logging.FileHandler',
+                'filename': 'debug.log',
+                'formatter': 'verbose',
+                'level': 'DEBUG',
+            },
+        },
+        'root': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'optimizer_simulator': {
-            'handlers': ['console', 'file'],
             'level': 'DEBUG',
-            'propagate': True,
         },
-    },
-}
+        'loggers': {
+            'django': {
+                'handlers': ['console', 'file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'optimizer_simulator': {
+                'handlers': ['console', 'file'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+        },
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -201,8 +248,6 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET')
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "https://res.cloudinary.com",
@@ -214,4 +259,8 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_METHODS = [
     'GET',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://optimum-production.up.railway.app',
 ]

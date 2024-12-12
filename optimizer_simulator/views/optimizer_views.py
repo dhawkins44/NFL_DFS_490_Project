@@ -19,25 +19,56 @@ def run_optimizer_view(request):
         try:
             # Get configuration from request
             config = json.loads(request.body.decode('utf-8'))
+            
+            # Log the player data
+            players_file = os.path.join(settings.MEDIA_ROOT, 'uploads', 'players.json')
+            with open(players_file, 'r') as f:
+                players = json.load(f)
+                logger.info(f"Number of players loaded: {len(players)}")
+                logger.info(f"Sample players:")
+                for pos in ['QB', 'RB', 'WR', 'TE', 'DST']:
+                    sample = next((p for p in players if p['Position'] == pos), None)
+                    if sample:
+                        logger.info(f"{pos} sample: {sample}")
+                
+                # Log salary distribution
+                salaries = [p['Salary'] for p in players]
+                logger.info(f"Salary range: {min(salaries)} - {max(salaries)}")
+                logger.info(f"Average salary: {sum(salaries)/len(salaries)}")
+                
+                # Log projections
+                fpts = [p['Fpts'] for p in players]
+                logger.info(f"Projection range: {min(fpts)} - {max(fpts)}")
+                logger.info(f"Average projection: {sum(fpts)/len(fpts)}")
+            
             num_lineups = config.get('num_lineups', 10)
             num_uniques = config.get('num_uniques', 1)
+            
+            logger.info(f"Starting optimization with {num_lineups} lineups and {num_uniques} uniques")
             
             # Define paths
             config_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'config.json')
             player_ids_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'player_ids.csv')
             projections_path = os.path.join(settings.MEDIA_ROOT, 'uploads', 'projections.csv')
 
-            # Delete existing optimizer output files starting with 'dk_optimal_lineups*'
+            # Log file paths
+            logger.info(f"Using config path: {config_path}")
+            logger.info(f"Using player IDs path: {player_ids_path}")
+            logger.info(f"Using projections path: {projections_path}")
+
+            # Delete existing optimizer output files
             optimizer_output_dir = os.path.join(settings.MEDIA_ROOT, 'optimizer_output')
             existing_files = glob.glob(os.path.join(optimizer_output_dir, 'dk_optimal_lineups*'))
             for f in existing_files:
                 os.remove(f)
+                logger.info(f"Deleted existing file: {f}")
 
             # Delete existing config.json file
             if os.path.exists(config_path):
                 os.remove(config_path)
+                logger.info("Deleted existing config.json")
 
-            # Build the configuration dictionary to write to config.json
+            # Build the configuration dictionary
             optimizer_config = {
                 "projection_path": projections_path,
                 "player_path": player_ids_path,
@@ -66,6 +97,14 @@ def run_optimizer_view(request):
             # Write the config.json file
             with open(config_path, 'w') as f:
                 json.dump(optimizer_config, f, indent=4)
+            logger.info("Wrote new config.json")
+            
+            # Verify input files exist
+            required_files = [config_path, player_ids_path, projections_path]
+            for file_path in required_files:
+                if not os.path.exists(file_path):
+                    raise FileNotFoundError(f"Required file not found: {file_path}")
+                logger.info(f"Verified file exists: {file_path}")
             
             # Run optimizer
             optimizer = NFL_Optimizer(
@@ -74,8 +113,16 @@ def run_optimizer_view(request):
                 num_uniques=num_uniques,
                 config_path=config_path,
             )
+            
+            logger.info("Starting optimization...")
             optimizer.optimize()
+            logger.info("Optimization complete")
+            
             output_file, lineup_data = optimizer.output()
+            if not lineup_data:
+                raise ValueError("No lineup data generated")
+                
+            logger.info(f"Generated output file: {output_file}")
             download_url = f"/optimizer_simulator/download/{output_file}/"
             
             return JsonResponse({
@@ -85,7 +132,7 @@ def run_optimizer_view(request):
             })
             
         except Exception as e:
-            logger.error(f"Error running optimizer: {str(e)}")
+            logger.error(f"Error running optimizer: {str(e)}", exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)

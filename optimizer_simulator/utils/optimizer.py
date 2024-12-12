@@ -758,11 +758,15 @@ class NFL_Optimizer:
         # Crunch!
         for i in range(self.num_lineups):
             try:
-                self.problem.solve(plp.PULP_CBC_CMD(msg=0))
+                if os.getenv('ON_RAILWAY'):
+                    self.problem.solve(plp.PULP_CBC_CMD(path='/root/.nix-profile/bin/cbc', msg=0))
+                else:
+                    # Use default CBC solver for local environment
+                    self.problem.solve(plp.PULP_CBC_CMD(msg=0))
             except plp.PulpSolverError:
                 print(
                     "Infeasibility reached - only generated {} lineups out of {}. Continuing with export.".format(
-                        len(self.num_lineups), self.num_lineups
+                        len(self.lineups), self.num_lineups
                     )
                 )
 
@@ -879,13 +883,13 @@ class NFL_Optimizer:
 
                 lineup_entry = {
                     "players": lineup_players,
-                    "salary": salary,
-                    "fpts_proj": round(fpts_p, 2),
-                    "fpts_used": round(fpts_used, 2),
-                    "ceiling": ceil,
-                    "ownership_sum": own_s,
-                    "ownership_product": own_p,
-                    "stddev": stddev,
+                    "salary": float(salary),
+                    "fpts_proj": round(float(fpts_p), 2),
+                    "fpts_used": round(float(fpts_used if fpts_used is not None else fpts_p), 2),
+                    "ceiling": float(ceil),
+                    "ownership_sum": float(own_s),
+                    "ownership_product": float(own_p),
+                    "stddev": float(stddev),
                     "stack": stack_str,
                 }
                 lineup_data.append(lineup_entry)

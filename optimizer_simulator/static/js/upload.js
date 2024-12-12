@@ -27,6 +27,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 const data = await response.json();
 
                 if (data.success) {
+                    // Trigger preloading of images
+                    if (window.preloadAllPlayerImages) {
+                        fetch("/media/uploads/player_ids.csv")
+                            .then((response) => response.text())
+                            .then((csvText) => {
+                                const playerData = csvText
+                                    .split("\n")
+                                    .slice(1)
+                                    .filter((line) => line.trim())
+                                    .map((line) => {
+                                        const [position, _, name] =
+                                            line.split(",");
+                                        return { position, name };
+                                    });
+                                preloadAllPlayerImages(playerData);
+                            });
+                    }
+
                     const modalElement =
                         document.getElementById("upload-modal");
                     const modal = bootstrap.Modal.getInstance(modalElement);

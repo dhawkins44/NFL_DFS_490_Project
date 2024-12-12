@@ -1,10 +1,35 @@
 [phases.setup]
-nixPkgs = ['python311', 'python311Packages.pip', 'python311Packages.virtualenv']
+nixPkgs = [
+  'python311',
+  'python311Packages.pip',
+  'python311Packages.virtualenv',
+  'cbc'
+]
 
 [phases.install]
-aptPkgs = ['gcc', 'gfortran', 'python3-dev', 'libblas-dev', 'liblapack-dev']
+aptPkgs = [
+  "gcc",
+  "gfortran",
+  "python3-dev",
+  "libblas-dev",
+  "liblapack-dev",
+  "libfreetype6-dev",
+  "pkg-config",
+  "libpng-dev",
+  "libglpk-dev",
+  "libgmp-dev",
+  "llvm-dev",
+  "clang",
+  "libffi-dev",
+  "libpq-dev",
+  "build-essential",
+  "glpk-utils",
+]
+
 cmds = [
     'python -m venv /opt/venv',
     'source /opt/venv/bin/activate',
-    'pip install -r requirements.txt'
-] 
+    'pip install -r requirements.txt',
+    'which cbc',
+    'cbc'  # run without arguments to get help output
+]

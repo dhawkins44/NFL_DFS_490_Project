@@ -88,12 +88,12 @@ def run_simulation(request):
                 config_path=config_path,
             )
 
-            # Generate lineups if needed
-            if len(simulator.field_lineups) == 0:
+            # Modify the lineup check to be more robust
+            if not simulator.field_lineups or not isinstance(simulator.field_lineups, dict):
                 logger.info("No lineups found, generating field lineups")
                 simulator.generate_field_lineups()
                 
-            if len(simulator.field_lineups) == 0:
+            if not simulator.field_lineups:
                 raise ValueError("Failed to generate valid lineups for simulation")
 
             # Run simulation

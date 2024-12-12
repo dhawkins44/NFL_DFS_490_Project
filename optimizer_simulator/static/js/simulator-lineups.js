@@ -82,7 +82,6 @@ function renderLineup(index) {
     tableBody.innerHTML = "";
 
     lineup.players.forEach((player) => {
-        console.log("Processing player:", player);
         const playerData = {
             first_name: player.name.split(" ")[0],
             last_name: player.name.split(" ").slice(1).join(" "),

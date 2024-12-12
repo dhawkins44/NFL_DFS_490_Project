@@ -8,50 +8,37 @@ const CLOUDINARY_CONFIG = {
 
 // Shared image utility functions
 function getPlayerImageUrl(player) {
-    console.log("Player object received:", player);
-    if (!player) {
-        return getPlaceholderImageUrl();
+    if (
+        !player ||
+        !player.position ||
+        (typeof player.position === "string" &&
+            player.position.toLowerCase().includes("<!doctype"))
+    ) {
+        return {
+            url: getPlaceholderImageUrl(),
+            isPlaceholder: true,
+        };
     }
 
     // Handle DST differently
     if (
         player.Position === "DST" ||
         player.name?.includes("DST") ||
-        player.position == "DST"
+        player.position === "DST"
     ) {
-        // Clean up team name and remove any trailing spaces
         const teamName = (player.name || player.first_name || "")
-            .replace(/\s*DST\s*/i, "") // More robust DST removal
+            .replace(/\s*DST\s*/i, "")
             .trim()
             .toLowerCase();
 
-        const dstUrl = `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${CLOUDINARY_CONFIG.defaultTransformation}/${CLOUDINARY_CONFIG.version}/${CLOUDINARY_CONFIG.folder}/${teamName}.png.png`;
-
-        // Add detailed logging
-        console.log("DST Image Processing:", {
-            input: {
-                name: player.name,
-                firstName: player.first_name,
-                position: player.position,
-            },
-            processing: {
-                cleanedTeamName: teamName,
-                finalUrl: dstUrl,
-            },
-        });
-
-        // Pre-load the image to verify it exists
-        const img = new Image();
-        img.onload = () =>
-            console.log(`DST image loaded successfully: ${teamName}`);
-        img.onerror = (e) =>
-            console.error(`DST image failed to load: ${teamName}`, e);
-        img.src = dstUrl;
-
-        return dstUrl;
+        const url = `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${CLOUDINARY_CONFIG.defaultTransformation}/${CLOUDINARY_CONFIG.version}/${CLOUDINARY_CONFIG.folder}/${teamName}.png.png`;
+        return {
+            url,
+            isPlaceholder: false,
+        };
     }
 
-    // For regular players, check if we have first_name/last_name or just name
+    // Regular player handling
     let firstName, lastName;
     if (player.first_name && player.last_name) {
         firstName = player.first_name;
@@ -61,33 +48,61 @@ function getPlayerImageUrl(player) {
         firstName = nameParts[0];
         lastName = nameParts.slice(1).join(" ");
     } else {
-        return getPlaceholderImageUrl();
+        return {
+            url: getPlaceholderImageUrl(),
+            isPlaceholder: true,
+        };
     }
 
-    // Clean up the names
     firstName = firstName.toLowerCase().replace(/[.']/g, "");
     lastName = lastName
         .toLowerCase()
-        // Remove suffixes like Sr., Jr., III, etc.
         .replace(/\s+(sr\.?|jr\.?|[ivx]+)$/i, "")
-        // Remove periods and apostrophes
-        .replace(/[.']/g, "");
+        .replace(/[.']/g, "")
+        .replace(/\s+/g, "_");
 
     const imageName = `${firstName}_${lastName}`;
-    const imageUrl = `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${CLOUDINARY_CONFIG.defaultTransformation}/${CLOUDINARY_CONFIG.version}/${CLOUDINARY_CONFIG.folder}/${imageName}.png.png`;
-    console.log("Using player image URL:", imageUrl);
-    return imageUrl;
+    const url = `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${CLOUDINARY_CONFIG.defaultTransformation}/${CLOUDINARY_CONFIG.version}/${CLOUDINARY_CONFIG.folder}/${imageName}.png.png`;
+    return {
+        url,
+        isPlaceholder: false,
+    };
 }
 
 function getPlaceholderImageUrl() {
     return `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${CLOUDINARY_CONFIG.defaultTransformation}/${CLOUDINARY_CONFIG.version}/${CLOUDINARY_CONFIG.folder}/player_placeholder.png.png`;
 }
 
-// Preload placeholder image
-function preloadPlaceholderImage() {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = getPlaceholderImageUrl();
+// Helper function to create/update player images
+function createPlayerImage(player, existingImg = null) {
+    // Add defensive check at the start
+    if (!player || typeof player !== "object") {
+        console.error("Invalid player object received:", player);
+        return createPlaceholderImage(existingImg);
+    }
+
+    const imageData = getPlayerImageUrl(player);
+    const img = existingImg || document.createElement("img");
+    img.classList.add("player-image");
+    img.src = imageData.url;
+
+    img.onerror = () => {
+        img.src = getPlaceholderImageUrl();
+    };
+
+    return img;
 }
 
-preloadPlaceholderImage();
+// Helper function to create placeholder image
+function createPlaceholderImage(existingImg = null) {
+    const img = existingImg || document.createElement("img");
+    img.classList.add("player-image");
+    img.src = getPlaceholderImageUrl();
+    return img;
+}
+
+// Export the functions if using modules
+window.CLOUDINARY_CONFIG = CLOUDINARY_CONFIG;
+window.getPlayerImageUrl = getPlayerImageUrl;
+window.getPlaceholderImageUrl = getPlaceholderImageUrl;
+window.createPlayerImage = createPlayerImage;

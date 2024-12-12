@@ -916,11 +916,10 @@ document.addEventListener("DOMContentLoaded", function () {
             option.dataset.fpts = player.Fpts;
             option.dataset.position = player.Position;
             option.dataset.image = getPlayerImageUrl({
-                first_name: player.Name.split(" ")[0],
-                last_name: player.Name.split(" ").slice(1).join(" "),
+                name: player.Name,
                 position: player.Position,
-                Team: player.Team, // for DST handling
-            });
+                Team: player.Team,
+            }).url;
             option.dataset.gameInfo = player.GameInfo || "";
             selectElement.appendChild(option);
         });

@@ -22,8 +22,9 @@ import seaborn as sns
 from collections import Counter
 from numba import jit
 import datetime
-
 import traceback
+
+# plp.pulpTestAll()
 
 logger = logging.getLogger(__name__)
 
@@ -89,12 +90,16 @@ class NFL_GPP_Simulator:
         use_lineup_input,
         config_path=None,
     ):
+        # Initialize field_lineups as an empty dict at the start
+        self.field_lineups = {}
+        
         self.site = site
         self.use_lineup_input = use_lineup_input
         self.load_config(config_path)
         logger.debug(f"Config loaded from {config_path}")
         self.load_rules()
         logger.debug(f"Rules loaded")
+        self.num_lineups = field_size
 
         # projection_path = os.path.join(
         #     os.path.dirname(__file__),
@@ -173,7 +178,11 @@ class NFL_GPP_Simulator:
         self.num_iterations = int(num_iterations)
         self.get_optimal()
         if self.use_lineup_input:
-            self.load_lineups_from_file()
+            try:
+                self.load_lineups_from_file()
+            except Exception as e:
+                logger.error(f"Error loading lineups from file: {str(e)}")
+                self.field_lineups = {}
         # if self.match_lineup_input_to_field_size or len(self.field_lineups) == 0:
         # self.generate_field_lineups()
         self.load_correlation_rules()
@@ -452,11 +461,14 @@ class NFL_GPP_Simulator:
         #     print(f"Error while printing variable: {e}")
         # Crunch!
         try:
-            problem.solve(plp.PULP_CBC_CMD(msg=0))
+            if os.getenv('ON_RAILWAY'):
+                self.problem.solve(plp.PULP_CBC_CMD(path='/root/.nix-profile/bin/cbc', msg=0))
+            else:
+                problem.solve(plp.PULP_CBC_CMD(msg=0))
         except plp.PulpSolverError:
             print(
                 "Infeasibility reached - only generated {} lineups out of {}. Continuing with export.".format(
-                    len(self.num_lineups), self.num_lineups
+                    self.num_lineups, self.field_size
                 )
             )
         except TypeError:
@@ -471,11 +483,16 @@ class NFL_GPP_Simulator:
                     )
                 if s["ID"] is None:
                     print(s["Name"])
+
+        # Get the objective value
         score = str(problem.objective)
         for v in problem.variables():
-            score = score.replace(v.name, str(v.varValue))
+            if v.varValue is not None:  # Add None check
+                score = score.replace(v.name, str(v.varValue))
+            else:
+                score = score.replace(v.name, "0")  # Replace None with 0
 
-        self.optimal_score = eval(score)
+        self.optimal_score = float(eval(score))
 
     @staticmethod
     def extract_matchup_time(game_string):

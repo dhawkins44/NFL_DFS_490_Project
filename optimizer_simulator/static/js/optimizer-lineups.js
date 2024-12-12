@@ -16,14 +16,18 @@ function renderLineup(index) {
     tableBody.innerHTML = "";
 
     lineup.players.forEach((player) => {
-        const playerImageUrl = getPlayerImageUrl(player);
+        const playerImageUrl = getPlayerImageUrl({
+            name: player.Name,
+            position: player.Position,
+            Team: player.Team,
+        });
 
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${player.LineupPosition}</td>
             <td>
                 <div class="player-cell">
-                    <img src="${playerImageUrl}" 
+                    <img src="${playerImageUrl.url}" 
                          alt="${player.Name}" 
                          class="player-image"
                          onerror="this.src='${getPlaceholderImageUrl()}'">

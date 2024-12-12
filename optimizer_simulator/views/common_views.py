@@ -21,27 +21,46 @@ def upload_file(request):
     required_files = ['player_ids.csv', 'projections.csv']
     files_exist = all(os.path.exists(os.path.join(upload_dir, f)) for f in required_files)
 
+    logger.info(f"Upload directory: {upload_dir}")
+
     if request.method == 'POST':
         try:
+            logger.info("Starting file upload process")
+            
+            # Create directories with more permissive permissions
+            optimizer_output_dir = os.path.join(settings.MEDIA_ROOT, 'optimizer_output')
+            for directory in [upload_dir, optimizer_output_dir]:
+                os.makedirs(directory, exist_ok=True)
+                if settings.ON_RAILWAY:
+                    os.chmod(directory, 0o777)
+                else:
+                    os.chmod(directory, 0o755)
+                logger.info(f"Created/verified directory: {directory}")
+
             player_ids_file = request.FILES.get('player_ids_file')
             projections_file = request.FILES.get('projections_file')
             
             if not all([player_ids_file, projections_file]):
+                logger.error("Missing required files")
                 return JsonResponse({
                     'success': False, 
                     'error': 'All files are required'
                 }, status=400)
             
-            # Delete existing files
-            media_root = settings.MEDIA_ROOT
-            upload_dir = os.path.join(media_root, 'uploads')
-            optimizer_output_dir = os.path.join(media_root, 'optimizer_output')
+            # Log file sizes and names
+            logger.info(f"Player IDs file: {player_ids_file.name} ({player_ids_file.size} bytes)")
+            logger.info(f"Projections file: {projections_file.name} ({projections_file.size} bytes)")
             
-            # Ensure directories exist
-            os.makedirs(upload_dir, exist_ok=True)
-            os.makedirs(optimizer_output_dir, exist_ok=True)
-            
-            # Save new files
+            # Create directories with more permissive permissions on Railway
+            optimizer_output_dir = os.path.join(settings.MEDIA_ROOT, 'optimizer_output')
+            for directory in [upload_dir, optimizer_output_dir]:
+                os.makedirs(directory, exist_ok=True)
+                if settings.ON_RAILWAY:
+                    os.chmod(directory, 0o777)
+                else:
+                    os.chmod(directory, 0o755)
+
+            # Save new files with more permissive permissions on Railway
             files = {
                 'player_ids.csv': player_ids_file,
                 'projections.csv': projections_file
@@ -52,6 +71,10 @@ def upload_file(request):
                 with open(file_path, 'wb+') as destination:
                     for chunk in file_obj.chunks():
                         destination.write(chunk)
+                if settings.ON_RAILWAY:
+                    os.chmod(file_path, 0o666)
+                else:
+                    os.chmod(file_path, 0o644)
 
             # Read both CSVs
             player_ids_path = os.path.join(upload_dir, 'player_ids.csv')
@@ -108,14 +131,28 @@ def upload_file(request):
 
                 players.append(player)
 
-            # Save comprehensive player data to JSON
+            # After saving players.json, verify and log its contents
             players_json_path = os.path.join(upload_dir, 'players.json')
-            # Create directory if it doesn't exist
-            os.makedirs(os.path.dirname(players_json_path), exist_ok=True)
+            logger.info(f"Saving players.json to: {players_json_path}")
+            
             with open(players_json_path, 'w', encoding='utf-8') as f:
                 json.dump(players, f, indent=4, ensure_ascii=False)
             
-            # Always return JSON response for POST requests
+            # Verify the file exists and is readable
+            if os.path.exists(players_json_path):
+                logger.info(f"Successfully created players.json at {players_json_path}")
+                try:
+                    with open(players_json_path, 'r', encoding='utf-8') as f:
+                        test_read = json.load(f)
+                    logger.info(f"Successfully verified players.json with {len(test_read)} players")
+                    # Log the first player as a sample
+                    if test_read:
+                        logger.info(f"Sample player data: {test_read[0]}")
+                except Exception as e:
+                    logger.error(f"Created players.json but cannot read it: {str(e)}")
+            else:
+                logger.error(f"Failed to create players.json at {players_json_path}")
+
             return JsonResponse({
                 'success': True,
                 'message': 'Files uploaded successfully',
@@ -123,7 +160,7 @@ def upload_file(request):
             })
             
         except Exception as e:
-            logger.error(f"Error during file upload: {str(e)}")
+            logger.error(f"Error during file upload: {str(e)}", exc_info=True)  # Add full traceback
             return JsonResponse({
                 'success': False,
                 'error': str(e)
