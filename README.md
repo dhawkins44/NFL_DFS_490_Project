@@ -43,7 +43,7 @@ Data Visualization:
 
 - ```optimizer_simulator/js/optimizer_stats/charts/player.js``` - Creates player-specific visualizations including exposure charts, position donut charts, and usage treemaps using D3.js.
 
-- - ```optimizer_simulator/js/optimizer_stats/charts/correlation.js``` - Generates an interactive correlation matrix visualization showing relationships between players using D3.js and matrix calculations.
+-  ```optimizer_simulator/js/optimizer_stats/charts/correlation.js``` - Generates an interactive correlation matrix visualization showing relationships between players using D3.js and matrix calculations.
  
 - ```optimizer_simulator/js/optimizer_stats/charts/summary.js``` - To be completed. It will include visualizations of player matchup data, matchup exposure, and game performance.
 
