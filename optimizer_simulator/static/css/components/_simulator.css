@@ -106,13 +106,12 @@
 
 /* Config accordion animation */
 #config-content {
-    max-height: 2000px; /* Adjust based on your needs */
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
+    transition: all 0.3s ease-out;
 }
 
 #config-content.collapsed {
-    max-height: 0;
+    display: none;
+    padding: 0;
 }
 
 /* Make sure header is clickable */

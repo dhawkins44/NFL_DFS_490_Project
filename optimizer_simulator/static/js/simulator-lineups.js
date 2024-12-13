@@ -1,5 +1,6 @@
 let currentLineupIndex = 0;
 let simulationData = [];
+let playerData = {};
 
 function processSimulationData(data) {
     // Handle object with numeric keys (convert to array)
@@ -68,111 +69,224 @@ function getPosition(index) {
 }
 
 function renderLineup(index) {
-    const lineup = simulationData[index];
-    if (!lineup) return;
+    try {
+        const lineup = simulationData[index];
+        if (!lineup) {
+            console.error("No lineup data found for index:", index);
+            return;
+        }
 
-    // Update navigation
-    document.getElementById("current-lineup").textContent = index + 1;
-    document.getElementById("prev-lineup").disabled = index === 0;
-    document.getElementById("next-lineup").disabled =
-        index === simulationData.length - 1;
-
-    // Clear and populate table body
-    const tableBody = document.getElementById("lineup-body");
-    tableBody.innerHTML = "";
-
-    lineup.players.forEach((player) => {
-        const playerData = {
-            first_name: player.name.split(" ")[0],
-            last_name: player.name.split(" ").slice(1).join(" "),
-            position: player.position,
-            Team: player.team, // for DST handling
+        // Get all required DOM elements
+        const elements = {
+            currentLineup: document.getElementById("current-lineup"),
+            prevLineup: document.getElementById("prev-lineup"),
+            nextLineup: document.getElementById("next-lineup"),
+            lineupBody: document.getElementById("lineup-body"),
+            totalSalary: document.getElementById("total-salary"),
+            totalProjected: document.getElementById("total-projected"),
+            winPercentage: document.getElementById("win-percentage"),
+            topTenPercentage: document.getElementById("top-ten-percentage"),
+            lineupStack: document.getElementById("lineup-stack"),
+            lineupType: document.getElementById("lineup-type"),
+            lineupCeiling: document.getElementById("lineup-ceiling"),
         };
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${player.position}</td>
-            <td>
-                <div class="player-cell">
-                    <img src="${getPlayerImageUrl(playerData)}" 
-                         alt="${player.name}" 
-                         class="player-image"
-                         onerror="this.src='${getPlaceholderImageUrl()}'"
-                         crossorigin="anonymous">
-                    <span>${player.name}</span>
-                </div>
-            </td>
-            <td>${player.team}</td>
-            <td>${player.opponent || "N/A"}</td>
-            <td>$${player.salary.toLocaleString()}</td>
-            <td>${player.fpts.toFixed(1)}</td>
-            <td>${player.ownership.toFixed(1)}%</td>
-        `;
-        tableBody.appendChild(row);
-    });
+        // Update navigation
+        elements.currentLineup.textContent = index + 1;
+        elements.prevLineup.disabled = index === 0;
+        elements.nextLineup.disabled = index === simulationData.length - 1;
 
-    // Update summary
-    document.getElementById("total-salary").textContent =
-        "$" + lineup.salary.toLocaleString();
-    document.getElementById("total-projected").textContent =
-        lineup.projectedPoints.toFixed(1);
-    document.getElementById("lineup-stack").textContent = lineup.stack;
-    document.getElementById("ownership-sum").textContent =
-        lineup.ownershipSum.toFixed(1) + "%";
+        // Clear and populate table body
+        elements.lineupBody.innerHTML = "";
+
+        // Extract players array from lineup data structure
+        const positionOrder = [
+            "QB", // QB first
+            "RB", // Then RB
+            "RB",
+            "WR",
+            "WR",
+            "WR",
+            "TE",
+            "FLEX",
+            "DST", // DST last
+        ];
+
+        // Reorder the lineup array to match the correct position order
+        const orderedLineup = [...lineup.Lineup];
+        // Move DST from first position to last position
+        const dst = orderedLineup.shift();
+        orderedLineup.push(dst);
+
+        const players = orderedLineup
+            .map((playerId, idx) => {
+                const playerData = window.playerData[String(playerId)];
+                if (!playerData) {
+                    console.error(
+                        "Could not find player data for ID:",
+                        playerId
+                    );
+                    return null;
+                }
+                return {
+                    ...playerData,
+                    position: positionOrder[idx], // Use the position from our order array
+                };
+            })
+            .filter(Boolean);
+
+        players.forEach((player) => {
+            const row = document.createElement("tr");
+            const nameParts = player.Name.split(" ");
+            const firstName = nameParts[0];
+            const lastName = nameParts.slice(1).join(" ");
+
+            // Format player data for image URL
+            const imagePlayer = {
+                first_name: firstName,
+                last_name: lastName,
+                position: player.Position[0],
+                Team: player.Team,
+            };
+
+            row.innerHTML = `
+                <td>${player.position}</td>
+                <td>
+                    <div class="player-cell">
+                        <img src="${getPlayerImageUrl(imagePlayer).url}" 
+                             alt="${player.Name}" 
+                             class="player-image"
+                             onerror="this.src='${getPlaceholderImageUrl()}'">
+                        <div class="player-name">${player.Name}</div>
+                    </div>
+                </td>
+                <td>${player.Team}</td>
+                <td>${player.Opponent || "N/A"}</td>
+                <td>$${player.Salary?.toLocaleString() || 0}</td>
+                <td>${player.Fpts?.toFixed(1) || "0.0"}</td>
+                <td>${
+                    player.fieldFpts?.toFixed(1) ||
+                    player.Fpts?.toFixed(1) ||
+                    "0.0"
+                }</td>
+                <td>${player.Ownership?.toFixed(1) || "0.0"}%</td>
+            `;
+            elements.lineupBody.appendChild(row);
+        });
+
+        // Update summary stats
+        const totalSalary = players.reduce(
+            (sum, player) => sum + (player.Salary || 0),
+            0
+        );
+        const totalFpts = players.reduce(
+            (sum, player) => sum + (player.Fpts || 0),
+            0
+        );
+
+        elements.totalSalary.textContent = "$" + totalSalary.toLocaleString();
+        elements.totalProjected.textContent = totalFpts.toFixed(1);
+
+        // Update win percentage and top 10% from the lineup data
+        const numSimulations = window.numSimulations || 100;
+        elements.winPercentage.textContent =
+            ((lineup.Wins / numSimulations) * 100).toFixed(1) + "%";
+        elements.topTenPercentage.textContent =
+            ((lineup.Top1Percent / numSimulations) * 100).toFixed(1) + "%";
+
+        // Update stack info using the exact field names from the CSV
+        const stack1 = lineup["Stack1 Type"] || "-";
+        const stack2 = lineup["Stack2 Type"] || "-";
+        elements.lineupStack.textContent =
+            [stack1, stack2]
+                .filter((x) => x !== "-" && x !== "No Stack") // Filter out No Stack and empty values
+                .join(" / ") || "-";
+
+        // Add Type and Ceiling using the exact field names from the CSV
+        elements.lineupType.textContent = lineup.Type || "-";
+        elements.lineupCeiling.textContent =
+            typeof lineup.Ceiling === "number"
+                ? lineup.Ceiling.toFixed(1)
+                : "-";
+    } catch (error) {
+        console.error("Error rendering lineup:", error);
+    }
 }
 
 window.initializeLineups = function (data) {
-    simulationData = processSimulationData(data);
-    currentLineupIndex = 0;
-    document.getElementById("total-lineups").textContent =
-        simulationData.length;
-    document.getElementById("lineups-section").style.display = "block";
-    if (simulationData.length > 0) {
-        renderLineup(0);
+    try {
+        if (!data.lineups || !data.players) {
+            console.error("Missing required data");
+            return;
+        }
+
+        // Store player data and simulation info globally
+        window.playerData = data.players;
+        window.numSimulations = data.num_simulations;
+        simulationData = Object.values(data.lineups);
+        currentLineupIndex = 0;
+
+        const totalLineupsElement = document.getElementById("total-lineups");
+        const lineupsSectionElement =
+            document.getElementById("lineups-section");
+
+        if (!totalLineupsElement || !lineupsSectionElement) {
+            console.error("Required elements not found for initialization");
+            return;
+        }
+
+        totalLineupsElement.textContent = simulationData.length;
+        lineupsSectionElement.style.display = "block";
+
+        if (simulationData.length > 0) {
+            renderLineup(0);
+        }
+    } catch (error) {
+        console.error("Error initializing lineups:", error);
     }
 };
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Initialize Bootstrap tabs
-    const tabElements = document.querySelectorAll('[data-bs-toggle="tab"]');
-    if (tabElements.length > 0) {
-        // Only initialize if elements exist
-        tabElements.forEach((tabElement) => {
-            const tab = new bootstrap.Tab(tabElement);
-        });
-    }
-    document
-        .getElementById("prev-lineup")
-        ?.addEventListener("click", function () {
-            if (currentLineupIndex > 0) {
-                currentLineupIndex--;
-                renderLineup(currentLineupIndex);
-            }
-        });
+    try {
+        // Initialize navigation buttons
+        const prevButton = document.getElementById("prev-lineup");
+        const nextButton = document.getElementById("next-lineup");
 
-    document
-        .getElementById("next-lineup")
-        ?.addEventListener("click", function () {
-            if (currentLineupIndex < simulationData.length - 1) {
-                currentLineupIndex++;
-                renderLineup(currentLineupIndex);
-            }
-        });
-
-    // Add config collapse functionality
-    const configHeader = document.querySelector(".config-header");
-    if (configHeader) {
-        configHeader.addEventListener("click", function () {
-            const content = document.getElementById("config-content");
-            const toggleBtn = document.getElementById("toggle-config");
-            if (content && toggleBtn) {
-                content.classList.toggle("collapsed");
-                const icon = toggleBtn.querySelector("i");
-                if (icon) {
-                    icon.classList.toggle("bi-chevron-up");
-                    icon.classList.toggle("bi-chevron-down");
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                if (currentLineupIndex > 0) {
+                    currentLineupIndex--;
+                    renderLineup(currentLineupIndex);
                 }
-            }
-        });
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                if (currentLineupIndex < simulationData.length - 1) {
+                    currentLineupIndex++;
+                    renderLineup(currentLineupIndex);
+                }
+            });
+        }
+
+        // Add config collapse functionality
+        const configHeader = document.querySelector(".config-header");
+        if (configHeader) {
+            configHeader.addEventListener("click", function () {
+                const content = document.getElementById("config-content");
+                const toggleBtn = document.getElementById("toggle-config");
+                if (content && toggleBtn) {
+                    content.classList.toggle("collapsed");
+                    const icon = toggleBtn.querySelector("i");
+                    if (icon) {
+                        icon.classList.toggle("bi-chevron-up");
+                        icon.classList.toggle("bi-chevron-down");
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Error setting up event listeners:", error);
     }
 });

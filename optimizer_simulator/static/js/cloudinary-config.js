@@ -19,7 +19,6 @@ function getPlayerImageUrl(player) {
             isPlaceholder: true,
         };
     }
-
     // Special handling for defense/special teams
     if (
         player.Position === "DST" ||
@@ -27,9 +26,8 @@ function getPlayerImageUrl(player) {
         player.position === "DST"
     ) {
         const teamName = (player.name || player.first_name || "")
-            .replace(/\s*DST\s*/i, "")
-            .trim()
-            .toLowerCase();
+            .toLowerCase()
+            .trim();
 
         const url = `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${CLOUDINARY_CONFIG.defaultTransformation}/${CLOUDINARY_CONFIG.version}/${CLOUDINARY_CONFIG.folder}/${teamName}.png.png`;
         return {

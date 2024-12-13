@@ -6,8 +6,33 @@
     {% include 'simulator_config.html' %}
 
     <div id="lineups-section" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center my-3">
+            <div>
+                <button class="btn btn-navigation" id="prev-lineup" disabled>
+                    <i class="bi bi-chevron-left"></i> Previous
+                </button>
+                <button class="btn btn-navigation" id="next-lineup">
+                    Next <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+            <div>
+                Lineup <span id="current-lineup">1</span> of <span id="total-lineups">0</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button id="reupload-btn" class="btn btn-secondary">
+                    <i class="bi bi-upload"></i> Re-upload Files
+                </button>
+                <a href="#" id="download-csv" class="btn btn-secondary" style="display: none;">
+                    <i class="bi bi-download"></i> Download Lineups
+                </a>
+                <a href="#" id="download-exposures" class="btn btn-secondary" style="display: none;">
+                    <i class="bi bi-download"></i> Download Exposures
+                </a>
+            </div>
+        </div>
+
         <div class="table-responsive">
-            <table class="table">
+            <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>Position</th>
@@ -16,6 +41,7 @@
                         <th>Opponent</th>
                         <th>Salary</th>
                         <th>Proj. Pts</th>
+                        <th>Field Proj.</th>
                         <th>Own %</th>
                     </tr>
                 </thead>
@@ -24,40 +50,30 @@
             </table>
         </div>
 
-        <div class="lineup-summary">
+        <div class="lineup-summary mt-3">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <strong>Total Salary:</strong> <span id="total-salary">$0</span>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <strong>Projected Points:</strong> <span id="total-projected">0</span>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <strong>Win %:</strong> <span id="win-percentage">0%</span>
+                </div>
+                <div class="col-md-2">
+                    <strong>Top 10%:</strong> <span id="top-ten-percentage">0%</span>
+                </div>
+                <div class="col-md-2">
                     <strong>Stack:</strong> <span id="lineup-stack">-</span>
                 </div>
-                <div class="col-md-3">
-                    <strong>Ownership Sum:</strong> <span id="ownership-sum">0%</span>
+                <div class="col-md-1">
+                    <strong>Type:</strong> <span id="lineup-type">-</span>
+                </div>
+                <div class="col-md-1">
+                    <strong>Ceiling:</strong> <span id="lineup-ceiling">-</span>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center my-3">
-        <div>
-            <button id="prev-lineup" class="btn btn-navigation">Previous</button>
-            <button id="next-lineup" class="btn btn-navigation">Next</button>
-        </div>
-        <div>
-            Lineup <span id="current-lineup">1</span> of <span id="total-lineups">0</span>
-        </div>
-        <div>
-            <button id="reupload-btn" class="btn btn-primary">Re-upload Files</button>
-            <a href="#" id="download-csv" class="btn btn-secondary" style="display: none;">
-                Download Lineups
-            </a>
-            <a href="#" id="download-exposures" class="btn btn-secondary" style="display: none;">
-                Download Exposures
-            </a>
         </div>
     </div>
 

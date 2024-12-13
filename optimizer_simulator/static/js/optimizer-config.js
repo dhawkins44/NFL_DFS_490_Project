@@ -800,6 +800,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
 
+            // Store the configuration in sessionStorage
+            sessionStorage.setItem(
+                "optimizerConfig",
+                JSON.stringify({
+                    minSalary: parseInt(
+                        document.getElementById("minSalary").value
+                    ),
+                    // Add other relevant config values here if needed
+                })
+            );
+
             // Show loading overlay
             document.getElementById("loading-overlay").style.display = "flex";
 

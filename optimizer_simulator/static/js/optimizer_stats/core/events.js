@@ -1,3 +1,22 @@
+// Add at the top of the file with other event handlers
+
+// Function to handle returning to optimizer page
+function returnToOptimizer() {
+    // Store the current stats data if needed
+    sessionStorage.setItem(
+        "optimizerStatsData",
+        JSON.stringify(window.statsData)
+    );
+
+    // Use history to go back instead of refreshing
+    window.history.back();
+
+    // If history.back() doesn't work (no history), fall back to regular navigation
+    setTimeout(() => {
+        window.location.href = optimizerUrl; // We'll get this from a global variable
+    }, 100);
+}
+
 // Function to render charts for a specific tab
 function renderChartsForTab(tabId) {
     if (!tabId) return;
@@ -10,6 +29,22 @@ function renderChartsForTab(tabId) {
                 if (document.getElementById("summary-metrics")) {
                     renderPromises.push(
                         createSummaryMetrics(window.statsData.summary_stats)
+                    );
+                }
+                if (document.getElementById("performance-chart")) {
+                    renderPromises.push(
+                        createPerformanceChart(
+                            "performance-chart",
+                            window.statsData.summary_stats
+                        )
+                    );
+                }
+                if (document.getElementById("salary-histogram")) {
+                    renderPromises.push(
+                        createSalaryDistribution(
+                            "salary-histogram",
+                            window.statsData.summary_stats
+                        )
                     );
                 }
                 break;
@@ -192,7 +227,17 @@ function openEnlargeModal(container, chartTitle) {
         "shown.bs.modal",
         function () {
             // Recreate chart with proper dimensions
-            if (container.id.includes("player-exposure")) {
+            if (container.id.includes("performance-chart")) {
+                createPerformanceChart(
+                    modalChartId,
+                    window.statsData.summary_stats
+                );
+            } else if (container.id.includes("salary-histogram")) {
+                createSalaryDistribution(
+                    modalChartId,
+                    window.statsData.summary_stats
+                );
+            } else if (container.id.includes("player-exposure")) {
                 createPlayerExposureChart(
                     window.statsData.player_stats,
                     modalChartId
@@ -241,3 +286,58 @@ function openEnlargeModal(container, chartTitle) {
         { once: true }
     );
 }
+
+// Store initial state
+let currentState = {
+    tab: "summary-section",
+    previousTab: null,
+};
+
+// Function to render charts for current tab
+function renderCurrentTab() {
+    const activeTab = document.querySelector(".tab-pane.active");
+    if (activeTab) {
+        renderChartsForTab(activeTab.id);
+    }
+}
+
+// Initialize charts when data is available
+document.addEventListener("DOMContentLoaded", function () {
+    // Initial render of the default tab
+    renderCurrentTab();
+
+    // Set up tab change listeners using Bootstrap's events
+    document.querySelectorAll('a[data-bs-toggle="tab"]').forEach((tab) => {
+        tab.addEventListener("shown.bs.tab", function (event) {
+            const targetId = event.target.getAttribute("href").substring(1);
+
+            // Update state
+            currentState = {
+                tab: targetId,
+                previousTab: currentState.tab,
+            };
+
+            // Update URL without affecting history
+            history.replaceState(currentState, "", `?tab=${targetId}`);
+
+            // Render charts for the new tab
+            renderChartsForTab(targetId);
+        });
+    });
+});
+
+// Handle back button
+window.addEventListener("popstate", function (event) {
+    if (event.state && event.state.tab) {
+        // Get the tab element
+        const tabElement = document.querySelector(
+            `a[href="#${event.state.tab}"]`
+        );
+        if (tabElement) {
+            // Use Bootstrap's tab API to show the tab
+            const tab = new bootstrap.Tab(tabElement);
+            tab.show();
+        }
+        currentState = event.state;
+    }
+});

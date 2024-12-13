@@ -25,7 +25,6 @@ def run_simulation(request):
     if request.method == 'POST':
         try:
             config = json.loads(request.body.decode('utf-8'))
-
             # Extract custom lineups from the config
             custom_lineups = config.get('custom_lineups', [])
 
@@ -189,17 +188,51 @@ def run_simulation(request):
             exposures_filename = os.path.basename(exposures_output_path)
             lineups_filename = os.path.basename(lineups_output_path)
 
+            # Create a player lookup dictionary
+            player_lookup = {}
+            for key, player in simulator.player_dict.items():
+                if 'ID' in player:
+                    # Clean up the name formatting
+                    name = player['Name'].replace('#', '-').title()
+                    player_lookup[str(player['ID'])] = {
+                        'Name': name,
+                        'Team': player['Team'],
+                        'Position': player['Position'],
+                        'Salary': player['Salary'],
+                        'Fpts': player['Fpts'],
+                        'Ownership': player.get('Ownership', 0),
+                        'Opponent': player.get('Opp', 'N/A'),
+                        'ID': player['ID']
+                    }
+            
+            # Process lineup data to ensure stack info is included
+            processed_lineups = {}
+            with open(lineups_output_path, 'r') as f:
+                reader = csv.DictReader(f)
+                for idx, row in enumerate(reader):
+                    # Get the lineup from field_lineups
+                    lineup_data = simulator.field_lineups[idx]
+                    
+                    # Add the CSV data we want
+                    processed_lineups[idx] = {
+                        **lineup_data,  # Keep original lineup data
+                        'Stack1 Type': row['Stack1 Type'],
+                        'Stack2 Type': row['Stack2 Type'],
+                        'Ceiling': float(row['Ceiling']),
+                    }
+
             return JsonResponse({
                 'success': True,
                 'message': 'Simulation completed successfully',
-                'lineups': simulator.field_lineups,
+                'lineups': processed_lineups,
+                'players': player_lookup,
+                'num_simulations': simulator.num_iterations,
                 'exposures_filename': exposures_filename,
                 'lineups_filename': lineups_filename,
             }, encoder=NumpyEncoder)
             
         except Exception as e:
-            logger.error(f"Error running simulation: {str(e)}")
-            logger.error(f"Error traceback:", exc_info=True)
+            logger.error("Error running simulation: %s", str(e), exc_info=True)
             return JsonResponse({
                 'success': False,
                 'error': str(e)

@@ -4,6 +4,13 @@
 {% block optimizer_content %}
 
 <div class="container-fluid mt-4">
+    <!-- Add Back Button -->
+    <div class="d-flex justify-content-end mb-3">
+        <button onclick="returnToOptimizer()" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Lineups
+        </button>
+    </div>
+
     <!-- Navigation Tabs -->
     <ul class="nav nav-tabs mb-4" role="tablist" id="optimizerTabs">
         <li class="nav-item" role="presentation">
@@ -301,6 +308,7 @@
 <!-- Pass the data from Django -->
 <script>
     window.statsData = {{ stats_json|safe }};
+    window.optimizerUrl = "{% url 'optimizer' %}";
 </script>
 
 {% endblock %}

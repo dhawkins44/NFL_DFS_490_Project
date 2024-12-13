@@ -183,11 +183,19 @@ function runSimulation(config) {
         },
         body: JSON.stringify(config),
     })
-        .then((response) => response.json())
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then((data) => {
             if (data.success) {
                 if (typeof window.initializeLineups === "function") {
-                    window.initializeLineups(data.lineups);
+                    window.initializeLineups({
+                        lineups: data.lineups,
+                        players: data.players,
+                    });
                 } else {
                     console.error("initializeLineups function not found");
                 }
@@ -209,6 +217,7 @@ function runSimulation(config) {
                     downloadExposures.style.display = "inline-block";
                 }
             } else {
+                console.error("Simulation error:", data.error);
                 alert("Error running simulation: " + data.error);
                 // Show the configuration section back if there's an error
                 toggleConfig(true);
@@ -791,19 +800,14 @@ function addCustomLineup(lineup) {
     const tbody = document.getElementById("added-lineups-body");
     if (!tbody) return;
 
-    console.log("Adding lineup:", lineup);
-    console.log("Available players:", players);
-
     const row = document.createElement("tr");
 
     // Add each player to the row
     lineup.forEach((playerId) => {
         // Convert both IDs to strings for comparison and log the lookup
         const stringId = String(playerId);
-        console.log("Looking for player ID:", stringId);
 
         const player = players.find((p) => String(p.id) === stringId);
-        console.log("Found player:", player);
 
         if (player) {
             const td = document.createElement("td");
@@ -898,11 +902,9 @@ function initializeLineupBuilder() {
 function updateLineupCount() {
     const tbody = document.getElementById("added-lineups-body");
     const count = tbody ? tbody.children.length : 0;
-    console.log("Current lineup count:", count); // Debug log
 
     // Update all instances of custom-lineup-count class
     const countElements = document.querySelectorAll(".custom-lineup-count");
-    console.log("Found count elements:", countElements.length); // Debug log
     countElements.forEach((element) => {
         element.textContent = count;
     });

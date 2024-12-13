@@ -144,3 +144,123 @@
     height: auto;
     padding-bottom: 0;
 }
+
+/* Performance chart styles */
+.performance-line {
+    transition: stroke-width 0.2s;
+}
+
+.performance-line:hover {
+    stroke-width: 3px;
+}
+
+.confidence-area {
+    transition: opacity 0.2s;
+}
+
+.confidence-area:hover {
+    opacity: 0.3;
+}
+
+/* Violin plot styles */
+.violin {
+    transition: opacity 0.2s;
+}
+
+.violin:hover {
+    opacity: 0.8;
+}
+
+/* Common chart elements */
+.axis-label {
+    font-size: 12px;
+    fill: #666;
+}
+
+.tick text {
+    font-size: 11px;
+    fill: #666;
+}
+
+.tick line {
+    stroke: #ddd;
+}
+
+.domain {
+    stroke: #ddd;
+}
+
+/* Common chart elements */
+.axis-label {
+    font-size: 12px;
+    fill: #666;
+}
+
+.tick text {
+    font-size: 11px;
+    fill: #666;
+}
+
+.tick line {
+    stroke: #ddd;
+}
+
+.domain {
+    stroke: #ddd;
+}
+
+.chart-tooltip {
+    position: absolute;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    pointer-events: none;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.chart-tooltip strong {
+    color: #333;
+    margin-right: 4px;
+}
+
+.chart-tooltip {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.chart-tooltip .tooltip-content {
+    line-height: 1.4;
+}
+
+.chart-tooltip strong {
+    color: #333;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.chart-tooltip .small {
+    font-size: 11px;
+}
+
+.point {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chart-tooltip .lineup-players {
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.chart-tooltip .lineup-players span {
+    color: #666;
+}

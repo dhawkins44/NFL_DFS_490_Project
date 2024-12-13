@@ -381,14 +381,37 @@ def get_summary_stats(df):
     """Calculate summary statistics."""
     total_lineups = len(df)
     
+    # Get lineup details
+    lineup_details = []
+    for idx, row in df.iterrows():
+        players = {
+            'QB': row['QB_name'],
+            'RB1': row['RB1_name'],
+            'RB2': row['RB2_name'],
+            'WR1': row['WR1_name'],
+            'WR2': row['WR2_name'],
+            'WR3': row['WR3_name'],
+            'TE': row['TE_name'],
+            'FLEX': row['FLEX_name'],
+            'DST': row['DST_name']
+        }
+            
+        lineup_details.append({
+            'fpts': row['Fpts Proj'],
+            'salary': row['Salary'],
+            'players': players
+        })
+
     summary_stats = {
         'total_lineups': total_lineups,
         'avg_salary': df['Salary'].mean(),
         'avg_fpts': df['Fpts Proj'].mean(),
+        'lineup_details': lineup_details,
         'salary_distribution': {
             'min': df['Salary'].min(),
             'max': df['Salary'].max(),
-            'std': df['Salary'].std()
+            'std': df['Salary'].std(),
+            'lineup_salaries': df['Salary'].tolist()
         },
         'fpts_distribution': {
             'min': df['Fpts Proj'].min(),
