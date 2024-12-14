@@ -2256,7 +2256,7 @@ class NFL_GPP_Simulator:
                             x["ROI"] / self.entry_fee / self.num_iterations * 100, 2
                         )
                         roi_round = round(x["ROI"] / x['Count'] / self.num_iterations, 2)
-                        lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},${},{}%,{}%,{}%,{},{},{},{},{}".format(
+                        lineup_str = "{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{} ({}),{},{},{},{},{},${},{}%,{}%,{}%,{},{},{},{},{}".format(
                             lu_names[1].replace("#", "-"),
                             x["Lineup"][1],
                             lu_names[2].replace("#", "-"),
@@ -2329,7 +2329,7 @@ class NFL_GPP_Simulator:
                             x["ROI"] / x['Count'] / self.entry_fee / self.num_iterations * 100, 2
                         )
                         roi_round = round(x["ROI"] / x['Count'] / self.num_iterations, 2)
-                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{}%,{},${},{},{},{},{},{}".format(
+                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{}%,{},${},{},{},{},{},{},{},{},{},{},{},{}".format(
                             x["Lineup"][1],
                             lu_names[1].replace("#", "-"),
                             x["Lineup"][2],
@@ -2364,7 +2364,7 @@ class NFL_GPP_Simulator:
                             simDupes
                         )
                     else:
-                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{},{},{},{},{},{}".format(
+                        lineup_str = "{}:{},{}:{},{}:{},{}:{},{}:{},{}:{},{},{},{},{},{}%,{}%,{},{},{},{},{},{},{},{},{},{},{},{},{},{}".format(
                             x["Lineup"][1],
                             lu_names[1].replace("#", "-"),
                             x["Lineup"][2],
