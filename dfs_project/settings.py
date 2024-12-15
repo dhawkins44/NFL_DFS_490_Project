@@ -17,6 +17,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 import tempfile
+import logging
 
 load_dotenv()
 
@@ -264,3 +265,5 @@ CORS_ALLOW_METHODS = [
 CSRF_TRUSTED_ORIGINS = [
     'https://optimum-production.up.railway.app',
 ]
+
+logging.getLogger('numba').setLevel(logging.WARNING)

@@ -164,16 +164,8 @@ def run_simulation(request):
                         logger.error(f"Lineup data: {ordered_lineup}")
                         continue
 
-                # Calculate how many more lineups we need to generate
-                num_custom_lineups = len(simulator.field_lineups)
-                remaining_lineups_needed = config.get('field_size', 100) - num_custom_lineups
-                
-                if remaining_lineups_needed > 0:
-                    # Temporarily adjust field size to generate remaining lineups
-                    original_field_size = simulator.field_size
-                    simulator.field_size = remaining_lineups_needed
-                    simulator.generate_field_lineups()
-                    simulator.field_size = original_field_size
+                # Generate the remaining lineups without adjusting field_size
+                simulator.generate_field_lineups()
             else:
                 # If no custom lineups, generate the full field
                 simulator.generate_field_lineups()

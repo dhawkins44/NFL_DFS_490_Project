@@ -1835,30 +1835,65 @@ class NFL_GPP_Simulator:
             lineup_set = frozenset(lineup_list)
 
             # Keeping track of lineup duplication counts
-            if lineup_set in self.seen_lineups:
-                self.seen_lineups[lineup_set] += 1
+            # if lineup_set in self.seen_lineups:
+            #     self.seen_lineups[lineup_set] += 1
 
-                # Increase the count in field_lineups using the index stored in seen_lineups_ix
-                self.field_lineups[self.seen_lineups_ix[lineup_set]]["Count"] += 1
-            else:
-                self.seen_lineups[lineup_set] = 1
+            #     # Increase the count in field_lineups using the index stored in seen_lineups_ix
+            #     self.field_lineups[self.seen_lineups_ix[lineup_set]]["Count"] += 1
+            # else:
+            #     self.seen_lineups[lineup_set] = 1
 
-                # Updating the field lineups dictionary
-                if nk in self.field_lineups.keys():
-                    print("bad lineups dict, please check dk_data files")
+            #     # Updating the field lineups dictionary
+            #     if nk in self.field_lineups.keys():
+            #         print("bad lineups dict, please check dk_data files")
+            #     else:
+            #         if self.site == "dk":
+            #             sorted_lineup = self.sort_lineup_by_start_time(
+            #                 next(iter(o.values()))["Lineup"]
+            #             )
+            #         else:
+            #             sorted_lineup = next(iter(o.values()))["Lineup"]
+
+            # Check if this lineup matches any existing input lineups
+            duplicate_of_input = False
+            for existing_idx, existing_lineup in self.field_lineups.items():
+                if frozenset(existing_lineup["Lineup"]) == lineup_set:
+                    # If it matches an input lineup, increment count and skip
+                    self.field_lineups[existing_idx]["Count"] += 1
+                    duplicate_of_input = True
+                    break
+
+            if not duplicate_of_input:
+                # If not a duplicate of input lineup, proceed with normal duplicate checking
+                if lineup_set in self.seen_lineups:
+                    self.seen_lineups[lineup_set] += 1
+                    self.field_lineups[self.seen_lineups_ix[lineup_set]]["Count"] += 1
                 else:
-                    if self.site == "dk":
-                        sorted_lineup = self.sort_lineup_by_start_time(
-                            next(iter(o.values()))["Lineup"]
-                        )
+                    self.seen_lineups[lineup_set] = 1
+                    if nk in self.field_lineups.keys():
+                        print("bad lineups dict, please check dk_data files")
                     else:
-                        sorted_lineup = next(iter(o.values()))["Lineup"]
+                        if self.site == "dk":
+                            sorted_lineup = self.sort_lineup_by_start_time(
+                                next(iter(o.values()))["Lineup"]
+                            )
+                        else:
+                            sorted_lineup = next(iter(o.values()))["Lineup"]
 
+
+
+
+
+                    # self.field_lineups[nk] = next(iter(o.values()))
+                    # self.field_lineups[nk]["Lineup"] = sorted_lineup
+                    # self.field_lineups[nk]["Count"] += self.seen_lineups[lineup_set]
+                    # # Store the new nk in seen_lineups_ix for quick access in the future
+                    # self.seen_lineups_ix[lineup_set] = nk
+                    # nk += 1
 
                     self.field_lineups[nk] = next(iter(o.values()))
                     self.field_lineups[nk]["Lineup"] = sorted_lineup
-                    self.field_lineups[nk]["Count"] += self.seen_lineups[lineup_set]
-                    # Store the new nk in seen_lineups_ix for quick access in the future
+                    self.field_lineups[nk]["Count"] = 1  # Start with count of 1
                     self.seen_lineups_ix[lineup_set] = nk
                     nk += 1
 

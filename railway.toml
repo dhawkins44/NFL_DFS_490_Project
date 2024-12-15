@@ -1,3 +1,9 @@
 [build]
 builder = "nixpacks"
-buildCommand = "python -c 'import os; os.makedirs(\"staticfiles\", exist_ok=True)' && python manage.py collectstatic --noinput --clear" 
+buildCommand = "python -c 'import os; os.makedirs(\"staticfiles\", exist_ok=True)' && python manage.py collectstatic --noinput --clear"
+
+[deploy]
+startCommand = "gunicorn dfs_project.wsgi:application --timeout 600 --workers 2"
+healthcheckPath = "/"
+healthcheckTimeout = 600
+restartPolicy = "always"

@@ -8,10 +8,6 @@
                 {% csrf_token %}
                 <div class="modal-body">
                     <div id="upload-messages"></div>
-                    {% comment %} <div class="mb-3">
-                        <label class="form-label">Config JSON</label>
-                        <input type="file" name="config_file" class="form-control" accept=".json" required>
-                    </div> {% endcomment %}
                     <div class="mb-3">
                         <label class="form-label">Player IDs CSV</label>
                         <input type="file" name="player_ids_file" class="form-control" accept=".csv" required>
@@ -19,6 +15,11 @@
                     <div class="mb-3">
                         <label class="form-label">Projections CSV</label>
                         <input type="file" name="projections_file" class="form-control" accept=".csv" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contest Structure CSV</label>
+                        <input type="file" name="contest_structure_file" class="form-control" accept=".csv">
+                        <small class="text-muted">Optional - Required for contest payout calculations</small>
                     </div>
                 </div>
                 <div class="modal-footer">
